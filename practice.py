@@ -1,20 +1,43 @@
 import requests
 from bs4 import BeautifulSoup
+import time
+import random
 
+# 更新 Headers，增加更多伪装信息
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Referer": "https://movie.douban.com/",
+    "Host": "movie.douban.com",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
 }
-response = requests.get("https://books.toscrape.com/")
-# response = requests.get("https://movie.douban.com/top250", headers=headers)
-if response.ok:
-    print(f"状态码: {response.status_code}")
-    print(f"网页长度: {len(response.text)} 字符")
-else:
-    print(f"请求失败，状态码: {response.status_code}")
 
-soup = BeautifulSoup(response.text, "html.parser")
-all_titles = soup.find_all("h3")
-for title in all_titles:
-    for a in title.find_all("a"):
-        print(a.string)
+# 打开文件准备写入，使用 utf-8 编码防止中文乱码
+with open("douban_top250.txt", "w", encoding="utf-8") as f:
+    for n in range(0, 250, 25):
+        print(f"正在爬取第 {n//25 + 1} 页...")
+        try:
+            # 添加超时设置
+            response = requests.get(f"https://movie.douban.com/top250?start={n}", headers=headers, timeout=10)
+            
+            if not response.ok:
+                print(f"请求失败: {response.status_code}")
+                continue
+                
+            soup = BeautifulSoup(response.text, "html.parser")
+            all_titles = soup.find_all("span", class_="title")
+            
+            for title in all_titles:
+                if title.string and "/" not in title.string:
+                    print(title.string)
+                    # 写入文件，记得加换行符
+                    f.write(title.string + "\n")
+            
+            # 随机延时 2 到 5 秒，防止被封
+            sleep_time = random.uniform(2, 5)
+            print(f"暂停 {sleep_time:.2f} 秒...")
+            time.sleep(sleep_time)
+                    
+        except requests.exceptions.RequestException as e:
+            print(f"发生错误: {e}")
+            break
 
