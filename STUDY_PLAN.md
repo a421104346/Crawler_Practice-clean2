@@ -64,6 +64,158 @@
 - 分页与列表抓取模式：
   - 分析分页参数（page、offset、limit）
   - 封装通用的「翻页抓取」函数
+---
+
+## 六、每个阶段的参考资料与练习目标
+
+> 下面是按階段整理的「學習資源 + 對應練習目標」，你可以邊看邊做，做到一半覺得不適合隨時換別的資源。
+
+### 阶段 1：Python + 基础爬虫
+
+**推薦學習資源（擇一主線 + 若干補充）**
+
+- 視頻 / 教程：
+  - 莫煩 Python《Python 爬虫基础教程》B站合集：[BV1MW411B7rv][web:4]
+  - B 站「爬虫教程（中文）」系列，從 GET 請求到完整爬蟲實戰：[BV19W411j7MW][web:20]
+  - 英文：Corey Schafer 的 BeautifulSoup + Requests 教程（YouTube）[web:23]
+  - 英文：Alex the Analyst 的 BeautifulSoup + Requests 入門實戰（YouTube）[web:17]
+- 文字：
+  - GeeksforGeeks Web Scraping with Python（查具體語法時當字典用）。
+
+**練習項目 A：招聘信息爬虫 + 职位需求分析**
+
+- 目標網站示例：
+  - 海外：使用任何公開職缺列表頁面（如 remoteok、indeed 某個關鍵詞搜索結果頁）。
+  - 國內：拉一個不需要登錄的招聘列表頁（實際選站時注意遵守站點規則）。
+- 具體任務：
+  1. 參考莫煩的課程完成基本 requests + BeautifulSoup 代碼骨架。[web:4]
+  2. 用瀏覽器 Network 面板分析分頁參數，寫一個函數自動翻頁抓取。（可對照 B 站爬蟲教程中的翻頁示例思路）[web:20]
+  3. 用 pandas 統計：
+     - 城市 / 地區職位數 Top N。
+     - 技能關鍵詞（從職位標題或描述中簡單拆分）出現頻率 Top N。
+  4. 輸出 `jobs.csv`，畫 1–2 張圖表（城市分佈柱狀圖、技能詞雲或 Top10 柱狀圖）。
+
+**練習項目 B：电影 / 动漫评分分析**
+
+- 目標網站示例：
+  - 可以延續你現在的豆瓣 Top250 抓取，往下擴展成數據分析 mini‑project。[screenshot:3]
+- 具體任務：
+  1. 參考 Corey / Alex 的教程，把現有爬蟲重構成「抓取 → 解析 → 存儲」三層結構。[web:17][web:23]
+  2. 使用 pandas：
+     - 統計年份分佈（按年代分桶，如 1980s, 1990s, 2000s）。
+     - 統計評分區間分佈（如 9–10、8–9 等）。
+  3. 繪圖（matplotlib / seaborn）：
+     - 年份 vs 數量 折線或柱狀圖。
+     - 評分直方圖。
+
+---
+
+### 阶段 2：进阶爬虫 + 登录 / 反爬
+
+**推薦學習資源**
+
+- JS 渲染 & 自動化：
+  - Playwright + Python 動態頁面抓取實戰（Scrapfly 教程）[web:12]
+  - Playwright Web Scraping 2025 教程（Crawlbase）[web:18]
+- Selenium / 反爬思路：
+  - 「Python 爬虫实战之 B 站」文章，講 cookies、Selenium、自動登錄與驗證碼思路[web:8]
+
+**練習項目 C：登录后页面抓取**
+
+- 目標類型：
+  - 任意簡單站點的「個人中心 / 收藏列表」，要求：帳號是你自己的、不要涉及敏感信息。
+- 具體任務：
+  1. 先手動登錄，觀察 Network 中登錄請求與 cookie 變化。[web:8]
+  2. 用 `requests.Session` 模擬表單登錄：
+     - 成功後調用登入後才能訪問的某個 JSON / HTML 列表接口。
+  3. 若站點有簡單 JS 渲染，改用 Playwright：
+     - 參照 Scrapfly 的 Playwright 教程，寫出打開頁面 → 登錄 → 等待內容渲染 → 抓取 HTML / JSON 的流程。[web:12]
+
+**練習項目 D：具备简单反爬的网站抓取**
+
+- 目標類型：
+  - 有基本反爬（User‑Agent、頻率限制）的公開站點，例如需要自定義 headers 才返回正常內容的列表頁。
+- 具體任務：
+  1. 根據教程理解如何構造 headers、使用隨機 User‑Agent。[web:12]
+  2. 實現簡單的「請求間隔 + 失敗重試」機制（裝飾器或封裝函數）。
+  3. 給請求加上 proxy 參數，嘗試走免費代理，順便熟悉錯誤處理（連接失敗、超時）。
+
+---
+
+### 阶段 3：社交媒体数据抓取
+
+**推薦學習資源**
+
+- API & 平台概念：
+  - 社交媒体 API 总览：Facebook Graph / Twitter / Instagram 等介紹[web:10][web:16]
+  - Instagram API 做社交媒體分析的文章（了解典型指標與接口形式）[web:22]
+- 具體實戰視頻：
+  - Sentiment Analysis of Social Media Data in Python（YouTube，從抓評論到情感分析的完整案例）[web:13]
+
+**練習項目 E：话题热度追踪**
+
+- 目標平台示例：
+  - Twitter/X（若你有開發者賬號）；
+  - 或選擇一個提供簡單 JSON 搜索接口的論壇/社區作為替代。
+- 具體任務：
+  1. 參考社交媒體 API 教程，完成：
+     - 用關鍵詞 / hashtag 搜索最近 n 條帖文。
+     - 把帖子 id、作者、發帖時間、互動數（點贊、轉發、評論）存入 DataFrame。[web:10][web:16]
+  2. 設計簡單的定時抓取腳本（哪怕是手動多次運行也行），形成多個時間點的數據快照。
+  3. 使用 pandas 對比不同時間段：
+     - 每小時/每天發帖數量
+     - 平均互動數
+  4. 使用折線圖展示「話題熱度隨時間」的變化。
+
+**練習項目 F：YouTube / B站评论抓取 + 情绪分析**
+
+- 目標平台示例：
+  - YouTube：用官方 API 或參考 YouTube 評論導出教學。
+  - B 站：參考「Python 爬取 B 站 UP 主所有視頻信息」文章分析接口結構。[web:14]
+- 具體任務：
+  1. 參考 Sentiment Analysis of Social Media Data in Python 的流程，完成：
+     - 抓取某個視頻的評論文本 + 時間 + 點贊數。[web:13]
+  2. 使用 TextBlob / VADER 等庫或中文情感分析工具，給每條評論打上情感標籤（正向/負向/中性）。[web:13]
+  3. 統計：
+     - 不同情感類別的比例；
+     - 隨時間變化的情感趨勢（例如按天聚合情感得分）。
+
+---
+
+### 阶段 4：数据分析 + 作品集打磨
+
+**推薦學習資源**
+
+- pandas 數據分析：
+  - 彭彭老師《Python Pandas 資料分析 - 基礎教學》[web:15]
+  - 或阿豬《2 小時 pandas 入門教程》[web:9]
+- 文本與情感分析：
+  - Twitter Sentiment Analysis using Python（GeeksforGeeks，流程可套用到你自己的數據）[web:19]
+  - 前面提到的社交媒體情感分析案例視頻[web:13]
+
+**練習項目 G：完整社交媒体分析报告**
+
+- 目標：把前面 E/F 任意一個數據源，升級為完整的分析報告項目。
+- 具體任務：
+  1. 使用 pandas 進階操作：
+     - groupby + agg 做多維度統計（按時間、情感類別、互動量分桶）。[web:15][web:9]
+     - merge / join 把多次抓取的快照數據合併為一個寬表。
+  2. 可視化：
+     - 使用 matplotlib / seaborn 畫時間序列、分佈圖、箱線圖等。
+  3. 情感 / 關鍵詞：
+     - 參考 Twitter 情感分析文章的流程，清洗文本、去停用詞、生成關鍵詞 Top N 或詞雲。[web:19]
+  4. 在 Notebook 或 README 裡用自然語言寫結論：
+     - 這個話題/視頻在什麼時間段最熱？
+     - 哪類內容更容易獲得高互動？
+     - 用數據支持 2–3 條可解釋的觀察。
+
+---
+
+> 後續你可以在 STUDY_PLAN.md 最後再加一個「進度記錄」區塊，例如：
+> - 2025‑01：完成階段 1，已實現招聘爬蟲 & 豆瓣 Top250 分析。
+> - 2025‑03：完成第一版社交話題熱度追踪腳本。
+> 這樣未來面試或做作品集介紹時，時間線會非常清晰。
+add resources and practice targets
 - 简单反爬对抗：
   - 随机 User-Agent、合理设置 headers
   - 控制请求频率（time.sleep，或简单限流）
