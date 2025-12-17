@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import random
+from pathlib import Path
 
 # 更新 Headers，增加更多伪装信息
 headers = {
@@ -11,8 +12,15 @@ headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
 }
 
+# 输出目录：固定“相对脚本所在目录”，避免你从不同工作目录运行导致写到别处
+BASE_DIR = Path(__file__).resolve().parent
+OUTPUT_DIR = BASE_DIR / "output"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+out_file = OUTPUT_DIR / "douban_top250.txt"
+print(f"输出文件: {out_file.resolve()}")
+
 # 打开文件准备写入，使用 utf-8 编码防止中文乱码
-with open("douban_top250.txt", "w", encoding="utf-8") as f:
+with out_file.open("w", encoding="utf-8") as f:
     for n in range(0, 250, 25):
         print(f"正在爬取第 {n//25 + 1} 页...")
         try:
