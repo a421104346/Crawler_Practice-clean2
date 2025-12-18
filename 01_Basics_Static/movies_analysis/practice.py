@@ -48,9 +48,13 @@ class DoubanScraper:
             rating = item.find("span", class_="rating_num").get_text()
             
             # 3. 评价人数 (例如 "123456人评价")
-            star_div = item.find("div", class_="star")
-            people_text = star_div.find_all("span")[-1].get_text()
-            people_count = re.sub(r'\D', '', people_text) # 只保留数字
+            # 方法：直接在 item 区域内查找文本内容包含 "人评价" 的 span 标签
+            # 这种基于内容的定位比数第几个 span 更稳定
+            people_span = item.find("span", string=re.compile("人评价"))
+            if people_span:
+                people_count = re.sub(r'\D', '', people_span.get_text())
+            else:
+                people_count = 0
             
             # 4. 年份 (位于 bd p 标签的一堆文本中)
             info_text = item.find("div", class_="bd").p.get_text()
@@ -95,28 +99,30 @@ def analyze_and_visualize(data, output_dir):
     df.to_csv(csv_path, index=False, encoding="utf-8-sig")
     print(f"数据已保存至: {csv_path}")
 
-    # --- 分析 1: 年份分布 (按年代) ---
+    # --- 分析 1: 年份分布 (按具体年份) ---
     # 去除没有年份的数据
     df_year = df.dropna(subset=['year']).copy()
-    # 计算年代 (例如 1994 -> 1990)
-    df_year['decade'] = (df_year['year'] // 10) * 10
-    decade_counts = df_year['decade'].value_counts().sort_index()
+    # 直接统计具体年份，不再按 10 年分桶
+    year_counts = df_year['year'].value_counts().sort_index()
 
-    print("\n--- 年代分布 ---")
-    print(decade_counts)
+    print("\n--- 年份分布 ---")
+    print(year_counts)
 
-    # 绘图: 年代分布
-    plt.figure(figsize=(10, 6))
-    decade_counts.plot(kind='bar', color='skyblue', edgecolor='black')
-    plt.title('豆瓣 Top250 电影年代分布')
-    plt.xlabel('年代')
+    # 绘图: 年份分布
+    # 因为具体年份较多（可能跨越几十年），把图表宽度设大一些 (figsize=(15, 6))
+    plt.figure(figsize=(15, 6))
+    year_counts.plot(kind='bar', color='skyblue', edgecolor='black', width=0.8)
+    plt.title('豆瓣 Top250 电影年份分布')
+    plt.xlabel('年份')
     plt.ylabel('电影数量')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.xticks(rotation=45)
+    # X 轴标签旋转 90 度，字体设小，防止重叠
+    plt.xticks(rotation=90, fontsize=8)
     
-    img_path_decade = output_dir / "decade_distribution.png"
-    plt.savefig(img_path_decade)
-    print(f"年代分布图已保存: {img_path_decade}")
+    # 文件名更新为 year_distribution.png 以示区分
+    img_path_year = output_dir / "year_distribution.png"
+    plt.savefig(img_path_year)
+    print(f"年份分布图已保存: {img_path_year}")
     plt.close()
 
     # --- 分析 2: 评分分布 ---
