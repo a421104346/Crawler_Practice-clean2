@@ -14,7 +14,10 @@ def crawl_xiaohongshu():
         # 启动有头浏览器 (headless=False)
         print("正在启动浏览器...")
         browser = p.chromium.launch(headless=False, args=['--start-maximized']) # 最大化窗口以便查看
-        context = browser.new_context(viewport={'width': 1920, 'height': 1080})
+        context = browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
         page = context.new_page()
 
         url = "https://www.xiaohongshu.com/explore?channel_id=homefeed_recommend"
