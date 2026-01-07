@@ -4,6 +4,8 @@ import time
 import random
 import logging
 
+# TODO: Migrate to httpx for async support (Phase 1 Requirement)
+
 # 配置日志，方便看到爬虫在干什么
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 

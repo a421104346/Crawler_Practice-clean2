@@ -1,4 +1,4 @@
-from crawler_base import BaseCrawler
+from core.base_crawler import BaseCrawler
 import logging
 
 class YahooCrawler(BaseCrawler):

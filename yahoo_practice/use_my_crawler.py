@@ -1,7 +1,13 @@
-from yahoo_crawler import YahooCrawler
+import sys
+import os
+
+# 将项目根目录添加到 python path，这样才能导入 core 和 crawlers 模块
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from crawlers.yahoo import YahooCrawler
 
 # 实例化一次，自动处理所有脏活（获取 Cookie，获取 Crumb，伪装 UA）
-print("Starting Crawler Bot...")
+print("Starting Crawler Bot (Refactored)...")
 bot = YahooCrawler()
 
 stocks = ['AAPL', 'MSFT', 'NVDA', 'TSLA']
@@ -18,7 +24,6 @@ for symbol in stocks:
             meta = result['meta']
             price = meta['regularMarketPrice']
             currency = meta['currency']
-            market_time = meta['regularMarketTime']
             
             print(f"[OK] {symbol} Price: {price} {currency}")
             
@@ -28,4 +33,3 @@ for symbol in stocks:
         print(f"[ERROR] Failed to fetch {symbol}")
 
 print("\nDone! The delay is automatically controlled to simulate human rhythm.")
-
