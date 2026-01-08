@@ -1,72 +1,112 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import asyncio
-from typing import Optional, Any
+"""
+FastAPI 主应用程序
+集成所有路由、中间件和启动事件
+"""
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import logging
 import sys
 import os
 
 # 将根目录添加到 sys.path，以便能导入 core 和 crawlers
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from crawlers.yahoo import YahooCrawler
+from backend.config import settings
+from backend.database import init_db, close_db
+from backend.routers import crawlers, tasks, websocket, auth
 
-app = FastAPI(title="Crawler Management API")
+# 配置日志
+logging.basicConfig(
+    level=getattr(logging, settings.LOG_LEVEL),
+    format='[%(asctime)s] %(levelname)s [%(name)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
-# 1. 定义请求模型
-class CrawlerRequest(BaseModel):
-    symbol: str
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    应用生命周期管理
+    启动时初始化数据库，关闭时清理资源
+    """
+    # 启动事件
+    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    logger.info("Initializing database...")
+    await init_db()
+    logger.info("Database initialized successfully")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "symbol": "AAPL"
-            }
-        }
+    yield
+    
+    # 关闭事件
+    logger.info("Shutting down application...")
+    await close_db()
+    logger.info("Application shutdown complete")
 
-# 2. 定义响应模型
-class CrawlerResponse(BaseModel):
-    status: str
-    data: Optional[Any] = None
-    error: Optional[str] = None
+
+# 创建 FastAPI 应用
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="生产级爬虫管理系统 API",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
+
+# 配置 CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 注册路由
+app.include_router(auth.router)
+app.include_router(crawlers.router)
+app.include_router(tasks.router)
+app.include_router(websocket.router)
+
 
 @app.get("/")
 async def root():
-    """健康检查接口"""
-    return {"message": "Crawler API is running", "version": "1.0.0"}
+    """
+    健康检查和欢迎页面
+    """
+    return {
+        "message": f"Welcome to {settings.APP_NAME}",
+        "version": settings.APP_VERSION,
+        "status": "running",
+        "docs": "/docs",
+        "api_prefix": "/api"
+    }
 
-@app.post("/api/yahoo/run", response_model=CrawlerResponse)
-async def run_yahoo(request: CrawlerRequest):
+
+@app.get("/health")
+async def health_check():
     """
-    启动 Yahoo 爬虫 (同步代码在异步线程池中运行)
+    健康检查端点（用于容器编排、负载均衡器等）
     """
-    try:
-        # 初始化爬虫
-        # 注意：这里每次请求都会新建一个 Crawler 实例 (包括初始化 session)
-        # 以后可以优化为单例模式或连接池
-        crawler = YahooCrawler()
-        
-        # 关键点：使用 asyncio.to_thread 将同步的 crawler.get_quote 放到线程池运行
-        # 这样不会阻塞 FastAPI 的主循环
-        print(f"Starting crawl for {request.symbol}...")
-        result = await asyncio.to_thread(crawler.get_quote, request.symbol)
-        
-        if result:
-            return CrawlerResponse(status="success", data=result)
-        else:
-            # 如果爬虫返回 None，抛出 404
-            # 注意：这里我们返回 200 OK + status="error" 还是直接 404？
-            # 根据 RESTful 规范，资源未找到应该 404
-            raise HTTPException(status_code=404, detail=f"No data found for {request.symbol}")
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        # 捕获所有其他异常并返回 500
-        print(f"Error during crawl: {e}")
-        return CrawlerResponse(status="error", error=str(e))
+    return {
+        "status": "healthy",
+        "version": settings.APP_VERSION
+    }
+
 
 if __name__ == "__main__":
     import uvicorn
+    
     # 开发模式启动
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    logger.info("Starting development server...")
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,  # 开发模式下自动重载
+        log_level=settings.LOG_LEVEL.lower()
+    )
 
