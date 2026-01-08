@@ -14,14 +14,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.config import settings
 from backend.database import init_db, close_db
-from backend.routers import crawlers, tasks, websocket, auth
+from backend.routers import crawlers, tasks, websocket, auth, monitoring
+from backend.logger import setup_logging
 
-# 配置日志
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format='[%(asctime)s] %(levelname)s [%(name)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+# 配置日志系统
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -56,7 +53,16 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# 配置 CORS
+# 配置中间件
+from backend.middleware import RequestLoggingMiddleware, PerformanceMonitoringMiddleware
+
+# 请求日志中间件
+app.add_middleware(RequestLoggingMiddleware)
+
+# 性能监控中间件
+app.add_middleware(PerformanceMonitoringMiddleware)
+
+# CORS 中间件
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -70,6 +76,7 @@ app.include_router(auth.router)
 app.include_router(crawlers.router)
 app.include_router(tasks.router)
 app.include_router(websocket.router)
+app.include_router(monitoring.router)
 
 
 @app.get("/")

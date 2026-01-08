@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import logging
+import os
 
 from backend.database import get_db
 from backend.schemas.crawler import CrawlerRequest, CrawlerResponse, CrawlerInfo
@@ -16,6 +17,17 @@ from backend.routers.websocket import manager
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/crawlers", tags=["crawlers"])
+
+# 检测是否启用 Celery（通过环境变量）
+USE_CELERY = os.getenv("USE_CELERY", "false").lower() == "true"
+
+if USE_CELERY:
+    try:
+        from backend.tasks.crawler_tasks import run_crawler_task as celery_run_crawler
+        logger.info("Celery integration enabled")
+    except ImportError:
+        logger.warning("Celery not available, falling back to BackgroundTasks")
+        USE_CELERY = False
 
 
 @router.get("", response_model=List[CrawlerInfo])
@@ -87,13 +99,20 @@ async def run_crawler(
         
         logger.info(f"Created task {task.id} for crawler {crawler_type}")
         
-        # 4. 添加后台任务
-        background_tasks.add_task(
-            execute_crawler_task,
-            task_id=task.id,
-            crawler_type=crawler_type,
-            params=params
-        )
+        # 4. 提交任务（Celery 或 BackgroundTasks）
+        if USE_CELERY:
+            # 使用 Celery 异步任务队列
+            celery_run_crawler.delay(task.id, crawler_type, params)
+            logger.info(f"Task {task.id} submitted to Celery")
+        else:
+            # 使用 FastAPI BackgroundTasks（默认）
+            background_tasks.add_task(
+                execute_crawler_task,
+                task_id=task.id,
+                crawler_type=crawler_type,
+                params=params
+            )
+            logger.info(f"Task {task.id} submitted to BackgroundTasks")
         
         return CrawlerResponse(
             status="success",

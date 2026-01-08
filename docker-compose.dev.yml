@@ -1,0 +1,61 @@
+version: '3.8'
+
+# 开发环境 Docker Compose 配置
+# 使用方法：docker-compose -f docker-compose.dev.yml up
+
+services:
+  # PostgreSQL 数据库（开发）
+  postgres:
+    image: postgres:15-alpine
+    container_name: crawler_postgres_dev
+    environment:
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: crawler_dev_db
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # 使用不同端口避免冲突
+    networks:
+      - crawler_dev_network
+
+  # Redis（开发）
+  redis:
+    image: redis:7-alpine
+    container_name: crawler_redis_dev
+    ports:
+      - "6380:6379"  # 使用不同端口
+    networks:
+      - crawler_dev_network
+
+  # Backend（开发模式 - 热重载）
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crawler_backend_dev
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://dev_user:dev_password@postgres:5432/crawler_dev_db
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=true
+      - USE_CELERY=false  # 开发环境可以不用 Celery
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8001:8000"  # 使用不同端口
+    volumes:
+      - ./backend:/app/backend:ro  # 只读挂载，启用热重载
+      - ./core:/app/core:ro
+      - ./crawlers:/app/crawlers:ro
+      - ./outputs:/app/outputs
+    networks:
+      - crawler_dev_network
+
+networks:
+  crawler_dev_network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:

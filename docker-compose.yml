@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: crawler_postgres
+    environment:
+      POSTGRES_USER: crawler_user
+      POSTGRES_PASSWORD: crawler_password
+      POSTGRES_DB: crawler_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crawler_user -d crawler_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crawler_network
+
+  # Redis 缓存和消息队列
+  redis:
+    image: redis:7-alpine
+    container_name: crawler_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crawler_network
+
+  # FastAPI 后端应用
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crawler_backend
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://crawler_user:crawler_password@postgres:5432/crawler_db
+      - REDIS_URL=redis://redis:6379/0
+      - USE_CELERY=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./outputs:/app/outputs  # 挂载输出目录
+    networks:
+      - crawler_network
+    restart: unless-stopped
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crawler_celery_worker
+    command: celery -A backend.celery_app worker --loglevel=info --concurrency=4
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://crawler_user:crawler_password@postgres:5432/crawler_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./outputs:/app/outputs
+    networks:
+      - crawler_network
+    restart: unless-stopped
+
+  # Celery Beat (定时任务调度器)
+  celery_beat:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crawler_celery_beat
+    command: celery -A backend.celery_app beat --loglevel=info
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://crawler_user:crawler_password@postgres:5432/crawler_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - crawler_network
+    restart: unless-stopped
+
+  # Flower - Celery 监控面板 (可选)
+  flower:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crawler_flower
+    command: celery -A backend.celery_app flower --port=5555
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+      - celery_worker
+    ports:
+      - "5555:5555"
+    networks:
+      - crawler_network
+    restart: unless-stopped
+
+networks:
+  crawler_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

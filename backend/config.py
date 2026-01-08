@@ -15,7 +15,11 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # 数据库设置
-    DATABASE_URL: str = "sqlite+aiosqlite:///./crawler_tasks.db"
+    # SQLite (开发环境)
+    # DATABASE_URL: str = "sqlite+aiosqlite:///./crawler_tasks.db"
+    # PostgreSQL (生产环境)
+    DATABASE_URL: str = "sqlite+aiosqlite:///./crawler_tasks.db"  # 默认 SQLite
+    POSTGRES_URL: Optional[str] = None  # 可选的 PostgreSQL URL
     
     # JWT 认证设置
     SECRET_KEY: str = "your-secret-key-change-in-production-MUST-BE-CHANGED"
@@ -26,7 +30,11 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:5173"]
     
     # Redis 设置 (Phase 2)
-    REDIS_URL: Optional[str] = None
+    REDIS_URL: Optional[str] = "redis://localhost:6379/0"
+    
+    # Celery 设置
+    CELERY_BROKER_URL: Optional[str] = None  # 默认使用 REDIS_URL
+    CELERY_RESULT_BACKEND: Optional[str] = None  # 默认使用 REDIS_URL
     
     # 日志级别
     LOG_LEVEL: str = "INFO"
