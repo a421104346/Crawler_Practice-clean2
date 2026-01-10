@@ -10,14 +10,16 @@ import logging
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 
 class BaseCrawler:
-    def __init__(self, use_fake_ua=True, base_delay=1.0):
+    def __init__(self, use_fake_ua=True, base_delay=1.0, progress_callback=None):
         """
         初始化爬虫基类
         :param use_fake_ua: 是否自动使用随机 User-Agent
         :param base_delay: 每次请求的基础延时(秒)，实际延时会在 0.5x ~ 1.5x 之间浮动
+        :param progress_callback: 进度回调函数 fn(progress: int, message: str)
         """
         self.session = requests.Session()
         self.base_delay = base_delay
+        self.progress_callback = progress_callback
         
         if use_fake_ua:
             self._rotate_ua()

@@ -10,7 +10,9 @@ class CrawlerRequest(BaseModel):
     # 爬虫特定参数
     symbol: Optional[str] = Field(None, description="股票代码（Yahoo爬虫）", example="AAPL")
     page: Optional[int] = Field(1, description="页码", ge=1)
-    keyword: Optional[str] = Field(None, description="搜索关键词")
+    max_pages: Optional[int] = Field(1, description="最大页数（Movies爬虫）", ge=1)
+    search: Optional[str] = Field(None, description="搜索关键词（Jobs爬虫）")
+    category: Optional[str] = Field(None, description="分类（Jobs爬虫）")
     
     # 通用参数
     extra_params: Optional[Dict[str, Any]] = Field(default={}, description="额外参数")

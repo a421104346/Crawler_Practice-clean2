@@ -1,23 +1,17 @@
-/**
- * 主仪表板页面
- * 显示爬虫控制面板和实时任务列表
- */
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
+import { useTaskStore } from '@/store/taskStore'
 import { CrawlerPanel } from '@/components/CrawlerPanel'
 import { TaskCard } from '@/components/TaskCard'
 import { taskApi } from '@/services/api'
-import { useWebSocket } from '@/hooks/useWebSocket'
-import type { Task } from '@/types'
 import { LogOut, RefreshCw, History } from 'lucide-react'
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const { user, logout, isAuthenticated } = useAuthStore()
+  const { tasks, setTasks, addTask, removeTask } = useTaskStore()
   
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [activeTasks, setActiveTasks] = useState<Set<string>>(new Set())
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // 检查认证状态
@@ -35,7 +29,7 @@ export const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Failed to load tasks:', error)
     }
-  }, [])
+  }, [setTasks])
 
   useEffect(() => {
     loadTasks()
@@ -49,37 +43,16 @@ export const Dashboard: React.FC = () => {
   }
 
   // 处理新任务创建
-  const handleTaskCreated = (taskId: string) => {
-    // 添加到活跃任务集合
-    setActiveTasks(prev => new Set(prev).add(taskId))
-    
-    // 立即刷新任务列表
-    loadTasks()
+  const handleTaskCreated = async (taskId: string) => {
+    // 获取新任务详情并添加到 store
+    try {
+        const newTask = await taskApi.get(taskId)
+        addTask(newTask)
+    } catch (error) {
+        console.error('Failed to fetch new task:', error)
+        loadTasks() // 降级方案：刷新整个列表
+    }
   }
-
-  // WebSocket 消息处理
-  const handleWebSocketMessage = useCallback((message: any) => {
-    setTasks(prevTasks => {
-      const updatedTasks = prevTasks.map(task =>
-        task.id === message.task_id
-          ? { ...task, status: message.status, progress: message.progress }
-          : task
-      )
-      
-      // 如果任务不在列表中，重新加载
-      const exists = prevTasks.some(t => t.id === message.task_id)
-      if (!exists) {
-        loadTasks()
-      }
-      
-      return updatedTasks
-    })
-  }, [loadTasks])
-
-  // 为每个活跃任务创建 WebSocket 连接
-  activeTasks.forEach(taskId => {
-    useWebSocket(taskId, { onMessage: handleWebSocketMessage })
-  })
 
   // 处理删除任务
   const handleDeleteTask = async (taskId: string) => {
@@ -87,7 +60,7 @@ export const Dashboard: React.FC = () => {
 
     try {
       await taskApi.delete(taskId)
-      setTasks(tasks.filter(t => t.id !== taskId))
+      removeTask(taskId)
     } catch (error) {
       console.error('Failed to delete task:', error)
     }

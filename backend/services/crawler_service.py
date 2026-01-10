@@ -105,7 +105,8 @@ class CrawlerService:
     def get_crawler_instance(
         self, 
         crawler_type: str, 
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
+        progress_callback: Optional[Callable[[int, str], None]] = None
     ) -> BaseCrawler:
         """
         创建爬虫实例
@@ -113,6 +114,7 @@ class CrawlerService:
         Args:
             crawler_type: 爬虫类型
             params: 初始化参数（可选）
+            progress_callback: 进度回调函数
         
         Returns:
             爬虫实例
@@ -130,22 +132,31 @@ class CrawlerService:
         crawler_class = self._crawlers[crawler_type][0]
         params = params or {}
         
+        # 实例化爬虫
+        crawler = None
+        
         # 根据不同爬虫类型，使用不同的初始化参数
         if crawler_type == "yahoo":
             # YahooCrawler 不需要初始化参数
-            return crawler_class()
+            crawler = crawler_class()
         elif crawler_type == "movies":
             # MoviesCrawler 接受 max_pages 参数
             max_pages = params.get("max_pages", 1)
-            return crawler_class(max_pages=max_pages)
+            crawler = crawler_class(max_pages=max_pages)
         elif crawler_type == "jobs":
             # JobsCrawler 接受 category 和 search 参数
             category = params.get("category")
             search = params.get("search")
-            return crawler_class(category=category, search=search)
+            crawler = crawler_class(category=category, search=search)
         else:
             # 默认：尝试无参数初始化
-            return crawler_class()
+            crawler = crawler_class()
+            
+        # 注入进度回调
+        if progress_callback:
+            crawler.progress_callback = progress_callback
+            
+        return crawler
     
     async def run_crawler(
         self,
@@ -159,14 +170,24 @@ class CrawlerService:
         Args:
             crawler_type: 爬虫类型
             params: 爬虫参数
-            progress_callback: 进度回调函数(progress: int, message: str)
+            progress_callback: 异步进度回调函数 async fn(progress: int, message: str)
         
         Returns:
             爬虫执行结果
         """
         try:
-            # 创建爬虫实例
-            crawler = self.get_crawler_instance(crawler_type, params)
+            # 获取当前事件循环，用于构建线程安全的回调
+            loop = asyncio.get_running_loop()
+            
+            # 构建同步回调包装器，以便在子线程中调用
+            sync_callback = None
+            if progress_callback:
+                def wrapper(progress, message):
+                    asyncio.run_coroutine_threadsafe(progress_callback(progress, message), loop)
+                sync_callback = wrapper
+            
+            # 创建爬虫实例，并注入同步回调
+            crawler = self.get_crawler_instance(crawler_type, params, progress_callback=sync_callback)
             
             logger.info(f"Starting crawler: {crawler_type} with params: {params}")
             
@@ -182,6 +203,7 @@ class CrawlerService:
                 if progress_callback:
                     await progress_callback(30, f"正在获取 {symbol} 的数据...")
                 
+                # 在线程池中执行
                 result = await asyncio.to_thread(crawler.get_quote, symbol)
                 
                 if progress_callback:
@@ -197,19 +219,11 @@ class CrawlerService:
             
             elif crawler_type == "movies":
                 if progress_callback:
-                    await progress_callback(10, "正在初始化豆瓣电影爬虫...")
+                    await progress_callback(5, "正在初始化豆瓣电影爬虫...")
                 
-                if progress_callback:
-                    await progress_callback(30, "正在抓取电影数据...")
-                
-                # MoviesCrawler.run() 是同步的
+                # MoviesCrawler.run() 是同步的，在线程池中运行
+                # 它内部会调用注入的 sync_callback
                 result = await asyncio.to_thread(crawler.run)
-                
-                if progress_callback:
-                    await progress_callback(90, "数据处理中...")
-                
-                if progress_callback:
-                    await progress_callback(100, "完成！")
                 
                 return result
             

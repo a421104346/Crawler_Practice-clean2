@@ -147,48 +147,54 @@ async def execute_crawler_task(
     from backend.schemas.task import TaskUpdate
     from datetime import datetime
     
-    async with AsyncSessionLocal() as db:
-        try:
-            logger.info(f"Executing task {task_id}: {crawler_type}")
-            
-            # 1. 更新任务状态为 running
+    try:
+        logger.info(f"Executing task {task_id}: {crawler_type}")
+        
+        # 1. 更新任务状态为 running (使用独立的会话)
+        async with AsyncSessionLocal() as db:
             await task_crud.update(
                 db,
                 task_id,
                 TaskUpdate(status="running", progress=0)
             )
-            
-            # 2. 广播任务开始
-            await manager.broadcast_to_task(task_id, {
-                "task_id": task_id,
-                "status": "running",
-                "progress": 0,
-                "message": "Task started"
-            })
-            
-            # 3. 定义进度回调函数
-            async def progress_callback(progress: int, message: str):
-                """更新进度到数据库和WebSocket"""
-                await task_crud.update(
-                    db,
-                    task_id,
-                    TaskUpdate(progress=progress)
-                )
+        
+        # 2. 广播任务开始
+        await manager.broadcast_to_task(task_id, {
+            "task_id": task_id,
+            "status": "running",
+            "progress": 0,
+            "message": "Task started"
+        })
+        
+        # 3. 定义进度回调函数 (每次调用使用独立的会话，防止并发冲突)
+        async def progress_callback(progress: int, message: str):
+            """更新进度到数据库和WebSocket"""
+            logger.info(f"Progress callback triggered: {progress}% - {message}")
+            try:
+                async with AsyncSessionLocal() as db:
+                    await task_crud.update(
+                        db,
+                        task_id,
+                        TaskUpdate(progress=progress)
+                    )
                 await manager.broadcast_to_task(task_id, {
                     "task_id": task_id,
                     "status": "running",
                     "progress": progress,
                     "message": message
                 })
-            
-            # 4. 执行爬虫
-            result = await crawler_service.run_crawler(
-                crawler_type,
-                params,
-                progress_callback=progress_callback
-            )
-            
-            # 5. 更新任务状态为 completed
+            except Exception as e:
+                logger.error(f"Error in progress callback: {e}")
+        
+        # 4. 执行爬虫
+        result = await crawler_service.run_crawler(
+            crawler_type,
+            params,
+            progress_callback=progress_callback
+        )
+        
+        # 5. 更新任务状态为 completed (使用独立的会话)
+        async with AsyncSessionLocal() as db:
             await task_crud.update(
                 db,
                 task_id,
@@ -198,22 +204,23 @@ async def execute_crawler_task(
                     result=result
                 )
             )
-            
-            # 6. 广播完成消息
-            await manager.broadcast_to_task(task_id, {
-                "task_id": task_id,
-                "status": "completed",
-                "progress": 100,
-                "message": "Task completed successfully",
-                "result": result
-            })
-            
-            logger.info(f"Task {task_id} completed successfully")
-            
-        except Exception as e:
-            logger.error(f"Task {task_id} failed: {e}", exc_info=True)
-            
-            # 更新任务状态为 failed
+        
+        # 6. 广播完成消息
+        await manager.broadcast_to_task(task_id, {
+            "task_id": task_id,
+            "status": "completed",
+            "progress": 100,
+            "message": "Task completed successfully",
+            "result": result
+        })
+        
+        logger.info(f"Task {task_id} completed successfully")
+        
+    except Exception as e:
+        logger.error(f"Task {task_id} failed: {e}", exc_info=True)
+        
+        # 更新任务状态为 failed (使用独立的会话)
+        async with AsyncSessionLocal() as db:
             await task_crud.update(
                 db,
                 task_id,
@@ -222,12 +229,12 @@ async def execute_crawler_task(
                     error=str(e)
                 )
             )
-            
-            # 广播失败消息
-            await manager.broadcast_to_task(task_id, {
-                "task_id": task_id,
-                "status": "failed",
-                "progress": 0,
-                "message": f"Task failed: {str(e)}",
-                "error": str(e)
-            })
+        
+        # 广播失败消息
+        await manager.broadcast_to_task(task_id, {
+            "task_id": task_id,
+            "status": "failed",
+            "progress": 0,
+            "message": f"Task failed: {str(e)}",
+            "error": str(e)
+        })

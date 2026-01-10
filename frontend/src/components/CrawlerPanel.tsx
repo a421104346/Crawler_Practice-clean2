@@ -57,7 +57,14 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
       if (selectedCrawler === 'yahoo') {
         crawlerParams.symbol = params.symbol || 'AAPL'
       } else if (selectedCrawler === 'movies') {
-        crawlerParams.max_pages = parseInt(params.max_pages || '1')
+        const pagesInput = params.max_pages
+        let pages = 1
+        if (pagesInput) {
+            pages = parseInt(pagesInput, 10)
+            if (isNaN(pages)) pages = 1
+        }
+        // console.log('Sending params:', { ...params, max_pages: pages })
+        crawlerParams.max_pages = pages
       } else if (selectedCrawler === 'jobs') {
         crawlerParams.search = params.search || ''
         crawlerParams.category = params.category || ''
@@ -143,9 +150,9 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
                 type="number"
                 min="1"
                 max="10"
-                value={params.max_pages || '1'}
+                value={params.max_pages || ''}
                 onChange={(e) => handleParamChange('max_pages', e.target.value)}
-                placeholder="1-10"
+                placeholder="默认为 1"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <p className="mt-1 text-xs text-gray-500">每页25部电影，10页=250部</p>

@@ -30,6 +30,20 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
   const reconnectCount = useRef(0)
   const reconnectTimeout = useRef<NodeJS.Timeout>()
 
+  // 使用 refs 保存最新回调，避免因回调引用变化导致不必要的重连
+  const onMessageRef = useRef(onMessage)
+  const onOpenRef = useRef(onOpen)
+  const onCloseRef = useRef(onClose)
+  const onErrorRef = useRef(onError)
+
+  // 每次渲染更新 refs
+  useEffect(() => {
+    onMessageRef.current = onMessage
+    onOpenRef.current = onOpen
+    onCloseRef.current = onClose
+    onErrorRef.current = onError
+  }, [onMessage, onOpen, onClose, onError])
+
   const connect = useCallback(() => {
     if (!taskId || ws.current?.readyState === WebSocket.OPEN) {
       return
@@ -44,31 +58,31 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
       ws.current = new WebSocket(wsUrl)
 
       ws.current.onopen = () => {
-        console.log(`WebSocket connected for task: ${taskId}`)
+        // console.log(`WebSocket connected for task: ${taskId}`)
         setIsConnected(true)
         reconnectCount.current = 0
-        onOpen?.()
+        onOpenRef.current?.()
       }
 
       ws.current.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data)
           setLastMessage(message)
-          onMessage?.(message)
+          onMessageRef.current?.(message)
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error)
         }
       }
 
       ws.current.onclose = () => {
-        console.log(`WebSocket closed for task: ${taskId}`)
+        // console.log(`WebSocket closed for task: ${taskId}`)
         setIsConnected(false)
-        onClose?.()
+        onCloseRef.current?.()
 
         // 尝试重连
         if (reconnectCount.current < reconnectAttempts) {
           reconnectCount.current += 1
-          console.log(`Attempting to reconnect (${reconnectCount.current}/${reconnectAttempts})...`)
+          // console.log(`Attempting to reconnect (${reconnectCount.current}/${reconnectAttempts})...`)
           
           reconnectTimeout.current = setTimeout(() => {
             connect()
@@ -78,12 +92,13 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
 
       ws.current.onerror = (error) => {
         console.error('WebSocket error:', error)
-        onError?.(error)
+        onErrorRef.current?.(error)
       }
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error)
     }
-  }, [taskId, onMessage, onOpen, onClose, onError, reconnectAttempts, reconnectInterval])
+    // 移除回调函数作为依赖，避免因父组件重新渲染导致重连
+  }, [taskId, reconnectAttempts, reconnectInterval])
 
   const disconnect = useCallback(() => {
     if (reconnectTimeout.current) {

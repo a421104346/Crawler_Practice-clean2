@@ -29,8 +29,8 @@ FAKE_USERS_DB = {
         "id": "user-001",
         "username": "admin",
         "email": "admin@example.com",
-        # 密码: admin123
-        "hashed_password": "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5NU2JYY.JdFSa",
+        # Password: admin123
+        "hashed_password": "$2b$12$nqD3QrQ8pqCzcfv6Kd/XTezyTzMYjprBXQEErtEntFUprH3nhqFla",
         "is_active": True,
         "created_at": datetime.utcnow().isoformat()
     },
@@ -38,8 +38,8 @@ FAKE_USERS_DB = {
         "id": "user-002",
         "username": "demo",
         "email": "demo@example.com",
-        # 密码: demo123
-        "hashed_password": "$2b$12$KIXbJcc1YBfFRRxJ0F5aUO.4Tk1SaF9Gz7U3dMZQHGBkZL9Jg9o4W",
+        # Password: demo123
+        "hashed_password": "$2b$12$va3gUiHpn8k7YCcPRiKH5OXj6HsH4n7HijmZTnFYw2oPFMPHO4KFy",
         "is_active": True,
         "created_at": datetime.utcnow().isoformat()
     }

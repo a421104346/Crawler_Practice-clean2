@@ -12,14 +12,15 @@ logger = logging.getLogger(__name__)
 class MoviesCrawler(BaseCrawler):
     """豆瓣电影 Top250 爬虫"""
     
-    def __init__(self, max_pages: int = 1):
+    def __init__(self, max_pages: int = 1, progress_callback=None):
         """
         初始化电影爬虫
         
         Args:
             max_pages: 要爬取的页数 (每页25部电影，10页=250部)
+            progress_callback: 进度回调函数
         """
-        super().__init__(use_fake_ua=False, base_delay=2.0)
+        super().__init__(use_fake_ua=False, base_delay=2.0, progress_callback=progress_callback)
         self.max_pages = max_pages
         self.base_url = "https://movie.douban.com/top250"
         
@@ -119,6 +120,16 @@ class MoviesCrawler(BaseCrawler):
         self.movies = []
         
         for i in range(self.max_pages):
+            # 更新进度
+            if self.progress_callback:
+                logger.info(f"Calling progress callback for page {i+1}")
+                # 进度计算：假设抓取占 80%，处理占 20%
+                # 当前页进度 = (i / max_pages) * 80
+                progress = int((i / self.max_pages) * 80) + 10  # +10 是因为还有初始化阶段
+                self.progress_callback(progress, f"正在抓取第 {i+1}/{self.max_pages} 页...")
+            else:
+                logger.warning("No progress_callback provided!")
+            
             start = i * 25
             html = self.fetch_page(start)
             
@@ -128,8 +139,14 @@ class MoviesCrawler(BaseCrawler):
                 logger.info(f"Page {i+1}/{self.max_pages}: {len(page_movies)} movies")
             else:
                 logger.warning(f"Failed to fetch page {i+1}, stopping")
+                if self.progress_callback:
+                    self.progress_callback(progress, f"抓取第 {i+1} 页失败")
                 break
         
+        # 完成抓取，准备返回
+        if self.progress_callback:
+            self.progress_callback(90, "数据整理中...")
+            
         result = {
             "movies": self.movies,
             "total": len(self.movies),
@@ -137,4 +154,8 @@ class MoviesCrawler(BaseCrawler):
         }
         
         logger.info(f"Movies crawler completed: {len(self.movies)} movies")
+        
+        if self.progress_callback:
+            self.progress_callback(100, "完成！")
+            
         return result
