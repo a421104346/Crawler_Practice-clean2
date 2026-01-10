@@ -45,13 +45,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete, onDownload }
     onMessage: (msg) => {
       // console.log('TaskCard received message:', msg)
       
-      // 忽略连接建立时的欢迎消息，避免将 status 覆盖为 undefined
-      if (msg.type === 'connection') {
+      // 忽略连接建立时的欢迎消息和心跳消息
+      if (msg.type === 'connection' || msg.type === 'pong') {
         return
       }
 
-      // 只有当消息中包含 status 时才更新，防止错误覆盖
-      if (msg.status) {
+      // 使用类型保护检查是否为任务更新消息
+      // 后端发送的任务更新消息可能没有 type 字段，但一定包含 status
+      if ('status' in msg) {
         updateTask(msg.task_id, {
           status: msg.status,
           progress: msg.progress,

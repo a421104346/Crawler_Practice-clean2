@@ -66,9 +66,13 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
 
       ws.current.onmessage = (event) => {
         try {
-          const message: WebSocketMessage = JSON.parse(event.data)
-          setLastMessage(message)
-          onMessageRef.current?.(message)
+          const message = JSON.parse(event.data)
+          // 简单的类型检查，确保消息符合 WebSocketMessage 的基本结构
+          if (message && typeof message === 'object') {
+            const typedMessage = message as WebSocketMessage
+            setLastMessage(typedMessage)
+            onMessageRef.current?.(typedMessage)
+          }
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error)
         }

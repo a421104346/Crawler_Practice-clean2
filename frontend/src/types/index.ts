@@ -39,16 +39,39 @@ export interface TaskListResponse {
   page_size: number
 }
 
-// WebSocket 消息
-export interface WebSocketMessage {
-  task_id: string
-  status: TaskStatus
-  progress: number
-  message: string
-  result?: any
-  error?: string
-  type?: 'connection' | 'update' | 'complete' | 'error'
+// WebSocket 消息类型
+export type WebSocketMessageType = 'connection' | 'update' | 'complete' | 'error' | 'pong';
+
+export interface BaseWebSocketMessage {
+  type?: WebSocketMessageType;
+  task_id?: string;
+  message?: string;
 }
+
+// 连接欢迎消息
+export interface ConnectionMessage extends BaseWebSocketMessage {
+  type: 'connection';
+  task_id: string;
+  message: string;
+}
+
+// 心跳响应
+export interface PongMessage extends BaseWebSocketMessage {
+  type: 'pong';
+}
+
+// 任务更新消息（后端目前未发送 type 字段）
+export interface TaskUpdateMessage extends BaseWebSocketMessage {
+  task_id: string;
+  status: TaskStatus;
+  progress: number;
+  message: string;
+  result?: any;
+  error?: string;
+  type?: 'update' | 'complete' | 'error'; // 兼容性定义
+}
+
+export type WebSocketMessage = ConnectionMessage | PongMessage | TaskUpdateMessage;
 
 // 用户
 export interface User {
