@@ -8,27 +8,27 @@ class YahooCrawler(BaseCrawler):
         super().__init__(use_fake_ua=False, base_delay=2.0)
         
         # 再次确保 Header 是完美的 Chrome PC 版
-        self.session.headers.update({
+        self.client.headers.update({
              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         })
         
         self.crumb = None
-        self._initialize_session()
+        # 初始化逻辑移到首次请求时，因为需要异步调用
 
-    def _initialize_session(self):
+    async def _initialize_session(self):
         """专门处理 Yahoo 的初始化逻辑：访问主页 -> 拿 Crumb"""
         logging.info("Initializing Yahoo session...")
         
         # 1. 访问主页拿 Cookie
         # 这一步是为了让 session 内部的 cookie jar 吃到 cookie
-        self.get("https://finance.yahoo.com")
+        await self.get("https://finance.yahoo.com")
         
         # 2. 拿 Crumb
         try:
             crumb_url = 'https://query1.finance.yahoo.com/v1/test/getcrumb'
             # 模拟 Referer 是很重要的伪装
             headers = {'Referer': 'https://finance.yahoo.com'}
-            resp = self.get(crumb_url, headers=headers)
+            resp = await self.get(crumb_url, headers=headers)
             
             if resp and resp.status_code == 200:
                 self.crumb = resp.text
@@ -39,11 +39,14 @@ class YahooCrawler(BaseCrawler):
         except Exception as e:
             logging.error(f"Error initializing Yahoo session: {e}")
 
-    def get_quote(self, symbol):
+    async def get_quote(self, symbol):
         """
         获取股票价格的业务接口
         用户只需要调用这个，不需要关心底层逻辑
         """
+        if not self.crumb:
+            await self._initialize_session()
+            
         if not self.crumb:
             logging.error("Cannot fetch quote: Crumb is missing")
             return None
@@ -52,10 +55,9 @@ class YahooCrawler(BaseCrawler):
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?symbol={symbol}&crumb={self.crumb}"
         
         # 复用父类的 get 方法（带重试和延时）
-        resp = self.get(url)
+        resp = await self.get(url)
         
         if resp and resp.status_code == 200:
             return resp.json()
         else:
             return None
-

@@ -176,18 +176,9 @@ class CrawlerService:
             爬虫执行结果
         """
         try:
-            # 获取当前事件循环，用于构建线程安全的回调
-            loop = asyncio.get_running_loop()
-            
-            # 构建同步回调包装器，以便在子线程中调用
-            sync_callback = None
-            if progress_callback:
-                def wrapper(progress, message):
-                    asyncio.run_coroutine_threadsafe(progress_callback(progress, message), loop)
-                sync_callback = wrapper
-            
-            # 创建爬虫实例，并注入同步回调
-            crawler = self.get_crawler_instance(crawler_type, params, progress_callback=sync_callback)
+            # 创建爬虫实例
+            # 注意：这里直接传入 async 的 progress_callback，因为 BaseCrawler 的子类现在都支持 async
+            crawler = self.get_crawler_instance(crawler_type, params, progress_callback=progress_callback)
             
             logger.info(f"Starting crawler: {crawler_type} with params: {params}")
             
@@ -203,8 +194,8 @@ class CrawlerService:
                 if progress_callback:
                     await progress_callback(30, f"正在获取 {symbol} 的数据...")
                 
-                # 在线程池中执行
-                result = await asyncio.to_thread(crawler.get_quote, symbol)
+                # 直接异步调用
+                result = await crawler.get_quote(symbol)
                 
                 if progress_callback:
                     await progress_callback(90, "数据处理中...")
@@ -221,9 +212,8 @@ class CrawlerService:
                 if progress_callback:
                     await progress_callback(5, "正在初始化豆瓣电影爬虫...")
                 
-                # MoviesCrawler.run() 是同步的，在线程池中运行
-                # 它内部会调用注入的 sync_callback
-                result = await asyncio.to_thread(crawler.run)
+                # 直接异步调用
+                result = await crawler.run()
                 
                 return result
             
@@ -234,8 +224,8 @@ class CrawlerService:
                 if progress_callback:
                     await progress_callback(30, "正在获取招聘信息...")
                 
-                # JobsCrawler.run() 是同步的
-                result = await asyncio.to_thread(crawler.run)
+                # 直接异步调用
+                result = await crawler.run()
                 
                 if progress_callback:
                     await progress_callback(90, "数据处理中...")
@@ -251,6 +241,7 @@ class CrawlerService:
         except Exception as e:
             logger.error(f"Error running crawler {crawler_type}: {e}", exc_info=True)
             raise
+
 
 
 # 创建全局服务实例

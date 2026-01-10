@@ -43,7 +43,7 @@ class JobsCrawler(BaseCrawler):
             return loc.split(",", 1)[0].strip() or loc.strip()
         return loc
     
-    def run(self) -> dict:
+    async def run(self) -> dict:
         """
         执行爬虫流程
         
@@ -60,7 +60,7 @@ class JobsCrawler(BaseCrawler):
             params["search"] = self.search
         
         # 发起请求
-        response = self.get(self.api_url, params=params, timeout=30)
+        response = await self.get(self.api_url, params=params, timeout=30)
         
         if not response or response.status_code != 200:
             logger.error(f"Failed to fetch jobs: status={response.status_code if response else 'None'}")

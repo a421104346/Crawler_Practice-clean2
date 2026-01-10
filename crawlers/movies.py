@@ -25,14 +25,14 @@ class MoviesCrawler(BaseCrawler):
         self.base_url = "https://movie.douban.com/top250"
         
         # 设置特定的 headers
-        self.session.headers.update({
+        self.client.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Referer': 'https://movie.douban.com/'
         })
         
         self.movies = []
     
-    def fetch_page(self, start: int) -> str:
+    async def fetch_page(self, start: int) -> str:
         """
         抓取单个页面
         
@@ -45,7 +45,7 @@ class MoviesCrawler(BaseCrawler):
         url = f"{self.base_url}?start={start}"
         logger.info(f"Fetching: {url}")
         
-        response = self.get(url, timeout=10)
+        response = await self.get(url, timeout=10)
         
         if response and response.status_code == 200:
             return response.text
@@ -108,7 +108,7 @@ class MoviesCrawler(BaseCrawler):
         
         return page_movies
     
-    def run(self) -> dict:
+    async def run(self) -> dict:
         """
         执行爬虫流程
         
@@ -126,12 +126,18 @@ class MoviesCrawler(BaseCrawler):
                 # 进度计算：假设抓取占 80%，处理占 20%
                 # 当前页进度 = (i / max_pages) * 80
                 progress = int((i / self.max_pages) * 80) + 10  # +10 是因为还有初始化阶段
-                self.progress_callback(progress, f"正在抓取第 {i+1}/{self.max_pages} 页...")
+                
+                # 处理 async 回调
+                import inspect
+                if inspect.iscoroutinefunction(self.progress_callback):
+                    await self.progress_callback(progress, f"正在抓取第 {i+1}/{self.max_pages} 页...")
+                else:
+                    self.progress_callback(progress, f"正在抓取第 {i+1}/{self.max_pages} 页...")
             else:
                 logger.warning("No progress_callback provided!")
             
             start = i * 25
-            html = self.fetch_page(start)
+            html = await self.fetch_page(start)
             
             if html:
                 page_movies = self.parse_page(html)
@@ -140,12 +146,18 @@ class MoviesCrawler(BaseCrawler):
             else:
                 logger.warning(f"Failed to fetch page {i+1}, stopping")
                 if self.progress_callback:
-                    self.progress_callback(progress, f"抓取第 {i+1} 页失败")
+                    if inspect.iscoroutinefunction(self.progress_callback):
+                        await self.progress_callback(progress, f"抓取第 {i+1} 页失败")
+                    else:
+                        self.progress_callback(progress, f"抓取第 {i+1} 页失败")
                 break
         
         # 完成抓取，准备返回
         if self.progress_callback:
-            self.progress_callback(90, "数据整理中...")
+            if inspect.iscoroutinefunction(self.progress_callback):
+                await self.progress_callback(90, "数据整理中...")
+            else:
+                self.progress_callback(90, "数据整理中...")
             
         result = {
             "movies": self.movies,
@@ -156,6 +168,9 @@ class MoviesCrawler(BaseCrawler):
         logger.info(f"Movies crawler completed: {len(self.movies)} movies")
         
         if self.progress_callback:
-            self.progress_callback(100, "完成！")
+            if inspect.iscoroutinefunction(self.progress_callback):
+                await self.progress_callback(100, "完成！")
+            else:
+                self.progress_callback(100, "完成！")
             
         return result
