@@ -16,7 +16,8 @@ class TaskCRUD:
     async def create(
         self, 
         db: AsyncSession, 
-        task_in: TaskCreate
+        task_in: TaskCreate,
+        user_id: str
     ) -> TaskModel:
         """创建新任务"""
         # 将 params dict 转换为 JSON 字符串
@@ -25,7 +26,7 @@ class TaskCRUD:
         task = TaskModel(
             crawler_type=task_in.crawler_type,
             params=params_json,
-            user_id=task_in.user_id,
+            user_id=user_id,
             status="pending",
             progress=0
         )
@@ -38,12 +39,15 @@ class TaskCRUD:
     async def get(
         self, 
         db: AsyncSession, 
-        task_id: str
+        task_id: str,
+        user_id: Optional[str] = None
     ) -> Optional[TaskModel]:
-        """根据ID获取任务"""
-        result = await db.execute(
-            select(TaskModel).where(TaskModel.id == task_id)
-        )
+        """根据ID获取任务（可选验证用户）"""
+        stmt = select(TaskModel).where(TaskModel.id == task_id)
+        if user_id:
+            stmt = stmt.where(TaskModel.user_id == user_id)
+            
+        result = await db.execute(stmt)
         return result.scalar_one_or_none()
     
     async def get_multi(
@@ -99,11 +103,12 @@ class TaskCRUD:
         self,
         db: AsyncSession,
         task_id: str,
-        task_update: TaskUpdate
+        task_update: TaskUpdate,
+        user_id: Optional[str] = None
     ) -> Optional[TaskModel]:
         """更新任务"""
         # 获取任务
-        task = await self.get(db, task_id)
+        task = await self.get(db, task_id, user_id)
         if not task:
             return None
         
@@ -137,12 +142,15 @@ class TaskCRUD:
     async def delete(
         self,
         db: AsyncSession,
-        task_id: str
+        task_id: str,
+        user_id: Optional[str] = None
     ) -> bool:
         """删除任务"""
-        result = await db.execute(
-            delete(TaskModel).where(TaskModel.id == task_id)
-        )
+        stmt = delete(TaskModel).where(TaskModel.id == task_id)
+        if user_id:
+            stmt = stmt.where(TaskModel.user_id == user_id)
+            
+        result = await db.execute(stmt)
         await db.commit()
         return result.rowcount > 0
 

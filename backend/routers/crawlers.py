@@ -100,7 +100,7 @@ async def run_crawler(
             params=params,
             user_id=current_user.user_id
         )
-        task = await task_crud.create(db, task_create)
+        task = await task_crud.create(db, task_create, user_id=current_user.user_id)
         
         logger.info(f"Created task {task.id} for crawler {crawler_type}")
         

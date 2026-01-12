@@ -4,8 +4,12 @@ FastAPI 依赖注入函数
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.config import settings
 from backend.schemas.auth import TokenData
+from backend.database import get_db
+from backend.crud.user import user_crud
+from backend.models.user import UserModel
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,19 +19,11 @@ security = HTTPBearer()
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db)
 ) -> TokenData:
     """
-    验证 JWT Token 并返回当前用户
-    
-    Args:
-        credentials: HTTP Authorization Bearer Token
-    
-    Returns:
-        TokenData: 用户信息
-    
-    Raises:
-        HTTPException: 401 如果 token 无效
+    验证 JWT Token 并返回当前用户数据
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -50,7 +46,12 @@ async def get_current_user(
         
         if username is None:
             raise credentials_exception
-        
+            
+        # 验证用户是否存在于数据库
+        user = await user_crud.get(db, user_id)
+        if not user:
+            raise credentials_exception
+            
         token_data = TokenData(username=username, user_id=user_id)
         return token_data
         
@@ -59,48 +60,43 @@ async def get_current_user(
         raise credentials_exception
 
 
+async def get_current_user_obj(
+    current_user: TokenData = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> UserModel:
+    """
+    获取当前用户对象（包含完整数据库信息）
+    """
+    user = await user_crud.get(db, current_user.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
 async def get_current_active_user(
-    current_user: TokenData = Depends(get_current_user)
+    current_user: TokenData = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ) -> TokenData:
     """
     验证用户是否处于活跃状态
-    
-    Args:
-        current_user: 当前用户信息
-    
-    Returns:
-        TokenData: 活跃用户信息
-    
-    Raises:
-        HTTPException: 400 如果用户未激活
     """
-    # Phase 1: 简化版本，所有用户都是活跃的
-    # Phase 2: 从数据库查询用户状态
+    user = await user_crud.get(db, current_user.user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
-# 可选：需要管理员权限的依赖
 async def get_current_admin_user(
-    current_user: TokenData = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
 ) -> TokenData:
     """
     验证用户是否有管理员权限
-    
-    Args:
-        current_user: 当前用户信息
-    
-    Returns:
-        TokenData: 管理员用户信息
-    
-    Raises:
-        HTTPException: 403 如果用户不是管理员
     """
-    # Phase 1: 简化版本，username 为 "admin" 的用户是管理员
-    # Phase 2: 从数据库查询用户角色
-    if current_user.username != "admin":
+    user = await user_crud.get(db, current_user.user_id)
+    if not user or not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
     return current_user
