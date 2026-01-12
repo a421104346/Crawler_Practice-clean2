@@ -41,3 +41,4 @@ gunicorn==21.2.0
 
 # Logging and Monitoring
 psutil==5.9.8
+playwright==1.57.0

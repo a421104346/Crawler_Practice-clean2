@@ -1,4 +1,4 @@
-from core.base_crawler import BaseCrawler
+from backend.core.base_crawler import BaseCrawler
 import logging
 
 class YahooCrawler(BaseCrawler):

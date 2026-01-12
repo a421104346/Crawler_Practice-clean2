@@ -1,7 +1,7 @@
 """
 豆瓣电影 Top250 爬虫
 """
-from core.base_crawler import BaseCrawler
+from backend.core.base_crawler import BaseCrawler
 import re
 import logging
 from bs4 import BeautifulSoup

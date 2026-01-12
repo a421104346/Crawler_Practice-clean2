@@ -1,7 +1,7 @@
 """
 Remotive 招聘 API 爬虫
 """
-from core.base_crawler import BaseCrawler
+from backend.core.base_crawler import BaseCrawler
 import logging
 from typing import Optional
 

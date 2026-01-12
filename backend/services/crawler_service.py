@@ -11,10 +11,10 @@ import json
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from core.base_crawler import BaseCrawler
-from crawlers.yahoo import YahooCrawler
-from crawlers.movies import MoviesCrawler
-from crawlers.jobs import JobsCrawler
+from backend.core.base_crawler import BaseCrawler
+from backend.crawlers.yahoo import YahooCrawler
+from backend.crawlers.movies import MoviesCrawler
+from backend.crawlers.jobs import JobsCrawler
 from backend.schemas.crawler import CrawlerInfo
 
 logger = logging.getLogger(__name__)
