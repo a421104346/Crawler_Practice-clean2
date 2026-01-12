@@ -72,6 +72,25 @@ export const HistoryPage: React.FC = () => {
     }
   }
 
+  // 处理下载结果
+  const handleDownloadResult = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task?.result) return
+
+    // 创建并下载 JSON 文件
+    const dataStr = JSON.stringify(task.result, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `task_${taskId}_result.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   // 饼图数据
   const pieData = stats ? [
     { name: '已完成', value: stats.tasks.completed, color: '#10b981' },

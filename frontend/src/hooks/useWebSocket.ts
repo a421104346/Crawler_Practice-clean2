@@ -52,7 +52,14 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
     try {
       // 构建 WebSocket URL
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const host = window.location.host
+      
+      // 修复：开发环境下直接连接后端 8000 端口，避开 Vite 代理的不稳定性
+      // 这解决了 "WebSocket is closed before the connection is established" 的问题
+      let host = window.location.host
+      if (host.includes('localhost:3000') || host.includes('localhost:5173')) {
+        host = host.split(':')[0] + ':8000'
+      }
+
       const wsUrl = `${protocol}//${host}/ws/tasks/${taskId}`
 
       ws.current = new WebSocket(wsUrl)

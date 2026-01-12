@@ -10,9 +10,11 @@ import os
 from backend.database import get_db
 from backend.schemas.crawler import CrawlerRequest, CrawlerResponse, CrawlerInfo
 from backend.schemas.task import TaskCreate, TaskResponse
+from backend.schemas.auth import TokenData
 from backend.services.crawler_service import crawler_service
 from backend.crud.task import task_crud
 from backend.routers.websocket import manager
+from backend.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +64,8 @@ async def run_crawler(
     crawler_type: str,
     request: CrawlerRequest,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user)
 ):
     """
     启动爬虫任务（后台运行）
@@ -72,6 +75,7 @@ async def run_crawler(
         request: 爬虫请求参数
         background_tasks: FastAPI 后台任务管理器
         db: 数据库会话
+        current_user: 当前登录用户
     
     Returns:
         CrawlerResponse: 包含任务ID和状态
@@ -93,7 +97,8 @@ async def run_crawler(
         # 3. 创建任务记录
         task_create = TaskCreate(
             crawler_type=crawler_type,
-            params=params
+            params=params,
+            user_id=current_user.user_id
         )
         task = await task_crud.create(db, task_create)
         
