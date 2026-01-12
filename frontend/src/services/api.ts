@@ -43,8 +43,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
+    // 如果是 401 错误
     if (error.response?.status === 401) {
-      // Token 过期，清除并跳转登录
+      // 如果是登录接口本身的 401，不进行跳转，直接抛出错误供 UI 处理
+      if (error.config?.url?.includes('/auth/login')) {
+        return Promise.reject(error)
+      }
+
+      // 其他接口的 401 代表 Token 过期，清除并跳转登录
       localStorage.removeItem('access_token')
       window.location.href = '/login'
     }

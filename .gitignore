@@ -7,6 +7,14 @@ venv/
 env/
 .venv/
 
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# Data directory
+backend/data/
+
 # Frontend
 node_modules/
 dist/

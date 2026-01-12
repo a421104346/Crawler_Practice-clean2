@@ -5,6 +5,16 @@ import os
 from pydantic_settings import BaseSettings
 from typing import Optional
 
+# 获取当前文件所在目录 (backend/)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 数据目录配置
+DATA_DIR = os.path.join(BASE_DIR, "data")
+# 自动创建数据目录
+os.makedirs(DATA_DIR, exist_ok=True)
+
+# 数据库文件路径
+DB_PATH = os.path.join(DATA_DIR, "crawler_tasks.db")
 
 class Settings(BaseSettings):
     """应用配置"""
@@ -15,10 +25,9 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # 数据库设置
-    # SQLite (开发环境)
-    # DATABASE_URL: str = "sqlite+aiosqlite:///./crawler_tasks.db"
+    # SQLite (开发环境) - 使用绝对路径确保一致性
+    DATABASE_URL: str = f"sqlite+aiosqlite:///{DB_PATH}"
     # PostgreSQL (生产环境)
-    DATABASE_URL: str = "sqlite+aiosqlite:///./crawler_tasks.db"  # 默认 SQLite
     POSTGRES_URL: Optional[str] = None  # 可选的 PostgreSQL URL
     
     # JWT 认证设置
