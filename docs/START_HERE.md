@@ -93,8 +93,11 @@ docker-compose restart
 
 ### 开发命令
 
+
+& a:/workspace/To-do/Crawler_Practice/.venv/Scripts/Activate.ps1
 ```bash
 # 后端开发
+uvicorn backend.main:app --reload
 cd backend
 python main.py
 

@@ -37,7 +37,8 @@ export const useAuthStore = create<AuthState>()(
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
-          const response = await authApi.login({ username, password })
+          // Send request with username/password JSON
+          const response = await authApi.login(username, password)
           
           // 保存 token
           localStorage.setItem('access_token', response.access_token)
@@ -51,6 +52,7 @@ export const useAuthStore = create<AuthState>()(
           // 获取用户信息
           await get().fetchUser()
         } catch (error: any) {
+          console.error("Login failed:", error);
           const message = error.response?.data?.detail || '登录失败'
           set({
             error: message,
@@ -65,7 +67,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (username: string, email: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
-          await authApi.register({ username, email, password })
+          await authApi.register(username, email, password)
           
           // 注册成功后自动登录
           await get().login(username, password)
@@ -102,7 +104,7 @@ export const useAuthStore = create<AuthState>()(
 
         set({ isLoading: true })
         try {
-          const user = await authApi.getMe()
+          const user = await authApi.getCurrentUser()
           set({ user, isLoading: false })
         } catch (error) {
           console.error('Fetch user error:', error)

@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.config import settings
 from backend.database import init_db, close_db
-from backend.routers import crawlers, tasks, websocket, auth, monitoring
+from backend.routers import crawlers, tasks, websocket, auth, monitoring, admin
 from backend.logger import setup_logging
 
 # 配置日志系统
@@ -77,6 +77,7 @@ app.include_router(crawlers.router)
 app.include_router(tasks.router)
 app.include_router(websocket.router)
 app.include_router(monitoring.router)
+app.include_router(admin.router)
 
 
 @app.get("/")

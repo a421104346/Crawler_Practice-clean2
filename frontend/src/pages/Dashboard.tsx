@@ -5,7 +5,7 @@ import { useTaskStore } from '@/store/taskStore'
 import { CrawlerPanel } from '@/components/CrawlerPanel'
 import { TaskCard } from '@/components/TaskCard'
 import { taskApi } from '@/services/api'
-import { LogOut, RefreshCw, History } from 'lucide-react'
+import { LogOut, RefreshCw, History, Shield } from 'lucide-react'
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -106,6 +106,16 @@ export const Dashboard: React.FC = () => {
                 欢迎, <span className="font-medium">{user?.username}</span>
               </span>
               
+              {user?.is_admin && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                >
+                  <Shield size={18} />
+                  Admin
+                </button>
+              )}
+
               <button
                 onClick={() => navigate('/history')}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"

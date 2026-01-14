@@ -13,6 +13,36 @@ import json
 class TaskCRUD:
     """任务的 CRUD 操作"""
     
+    async def get_multi_all(
+        self,
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 20
+    ) -> tuple[List[TaskModel], int]:
+        """获取所有任务（管理员用，返回列表和总数）"""
+        # 查询总数
+        count_query = select(func.count()).select_from(TaskModel)
+        total = await db.scalar(count_query)
+        
+        # 查询数据
+        query = select(TaskModel).order_by(TaskModel.created_at.desc())
+        query = query.offset(skip).limit(limit)
+        
+        result = await db.execute(query)
+        return result.scalars().all(), total
+
+    async def remove(
+        self,
+        db: AsyncSession,
+        task_id: str
+    ) -> Optional[TaskModel]:
+        """删除任务并返回被删除的对象"""
+        task = await self.get(db, task_id)
+        if task:
+            await db.delete(task)
+            await db.commit()
+        return task
+
     async def create(
         self, 
         db: AsyncSession, 

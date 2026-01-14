@@ -9,13 +9,57 @@ import { LoginPage } from '@/pages/Login'
 import { RegisterPage } from '@/pages/Register'
 import { Dashboard } from '@/pages/Dashboard'
 import { HistoryPage } from '@/pages/History'
+import AdminDashboard from '@/pages/AdminDashboard'
 
 // 受保护的路由组件
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user, isLoading } = useAuthStore()
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  
+  // 如果是管理员，禁止访问普通用户页面，重定向到 Admin Dashboard
+  if (user?.is_admin) {
+    return <Navigate to="/admin" replace />
+  }
+  
+  return <>{children}</>
+}
+
+// 根路径重定向组件
+const HomeRedirect: React.FC = () => {
+  const { isAuthenticated, user, isLoading } = useAuthStore()
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (user?.is_admin) {
+    return <Navigate to="/admin" replace />
+  }
+
+  return <Navigate to="/dashboard" replace />
+}
+
+// 管理员路由组件
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore()
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+  
+  if (!user?.is_admin) {
+    return <Navigate to="/dashboard" replace />
   }
   
   return <>{children}</>
@@ -40,6 +84,14 @@ export const App: React.FC = () => {
 
         {/* 受保护的路由 */}
         <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
@@ -57,10 +109,10 @@ export const App: React.FC = () => {
         />
 
         {/* 默认路由 */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<HomeRedirect />} />
         
-        {/* 404 路由 */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* 404 路由 - 根据角色重定向 */}
+        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </BrowserRouter>
   )

@@ -70,12 +70,16 @@ async def register(
     
     logger.info(f"New user registered: {user.username}")
     
+    # 手动处理 created_at，确保它是字符串
+    created_at_str = user.created_at.isoformat() if user.created_at else None
+    
     return UserResponse(
         id=user.id,
         username=user.username,
         email=user.email,
         is_active=user.is_active,
-        created_at=user.created_at.isoformat() if user.created_at else None
+        is_admin=user.is_admin,
+        created_at=created_at_str
     )
 
 
@@ -140,6 +144,7 @@ async def get_current_user_info(
         username=user.username,
         email=user.email,
         is_active=user.is_active,
+        is_admin=user.is_admin,
         created_at=user.created_at.isoformat() if user.created_at else None
     )
 

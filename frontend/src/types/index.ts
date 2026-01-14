@@ -79,7 +79,10 @@ export interface User {
   username: string
   email: string | null
   is_active: boolean
+  is_admin: boolean
   created_at: string | null
+  updated_at?: string
+  last_login?: string
 }
 
 // 登录请求

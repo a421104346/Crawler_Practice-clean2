@@ -86,5 +86,29 @@ class UserCRUD:
         
         return user
 
+    async def get_multi(
+        self,
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 100
+    ) -> list[UserModel]:
+        """获取所有用户"""
+        result = await db.execute(
+            select(UserModel).offset(skip).limit(limit)
+        )
+        return result.scalars().all()
+
+    async def remove(
+        self,
+        db: AsyncSession,
+        user_id: str
+    ) -> Optional[UserModel]:
+        """删除用户"""
+        user = await self.get(db, user_id)
+        if user:
+            await db.delete(user)
+            await db.commit()
+        return user
+
 # 创建全局实例
 user_crud = UserCRUD()

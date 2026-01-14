@@ -19,7 +19,13 @@ export const LoginPage: React.FC = () => {
     
     try {
       await login(username, password)
-      navigate('/dashboard')
+      // Check user role after login
+      const { user } = useAuthStore.getState();
+      if (user?.is_admin) {
+        navigate('/admin')
+      } else {
+        navigate('/dashboard')
+      }
     } catch (error) {
       // 错误已经在 store 中处理
     }
