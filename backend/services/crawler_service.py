@@ -15,6 +15,9 @@ from backend.core.base_crawler import BaseCrawler
 from backend.crawlers.yahoo import YahooCrawler
 from backend.crawlers.movies import MoviesCrawler
 from backend.crawlers.jobs import JobsCrawler
+from backend.crawlers.weibo import WeiboCrawler
+from backend.crawlers.rednote import RednoteCrawler
+from backend.crawlers.prosettings import ProSettingsCrawler
 from backend.schemas.crawler import CrawlerInfo
 
 logger = logging.getLogger(__name__)
@@ -68,6 +71,48 @@ class CrawlerService:
                 description="抓取 Remotive 远程工作招聘信息（岗位、公司、薪资等）",
                 parameters=[],
                 optional_parameters=["category", "search"],
+                status="active"
+            )
+        )
+
+        # 微博热搜爬虫
+        self.register_crawler(
+            name="weibo",
+            crawler_class=WeiboCrawler,
+            info=CrawlerInfo(
+                name="weibo",
+                display_name="微博热搜",
+                description="抓取微博实时热搜榜 (使用 Playwright)",
+                parameters=[],
+                optional_parameters=[],
+                status="active"
+            )
+        )
+
+        # 小红书爬虫
+        self.register_crawler(
+            name="rednote",
+            crawler_class=RednoteCrawler,
+            info=CrawlerInfo(
+                name="rednote",
+                display_name="小红书发现页",
+                description="抓取小红书发现页推荐内容 (使用 Playwright)",
+                parameters=[],
+                optional_parameters=[],
+                status="active"
+            )
+        )
+
+        # ProSettings 爬虫
+        self.register_crawler(
+            name="prosettings",
+            crawler_class=ProSettingsCrawler,
+            info=CrawlerInfo(
+                name="prosettings",
+                display_name="CS2 职业哥设置",
+                description="抓取 CS2 职业选手的鼠标设置 (使用 lxml)",
+                parameters=[],
+                optional_parameters=[],
                 status="active"
             )
         )
@@ -142,12 +187,21 @@ class CrawlerService:
         elif crawler_type == "movies":
             # MoviesCrawler 接受 max_pages 参数
             max_pages = params.get("max_pages", 1)
+            # 确保类型转换
+            if isinstance(max_pages, str):
+                try:
+                    max_pages = int(max_pages)
+                except ValueError:
+                    max_pages = 1
             crawler = crawler_class(max_pages=max_pages)
         elif crawler_type == "jobs":
             # JobsCrawler 接受 category 和 search 参数
             category = params.get("category")
             search = params.get("search")
             crawler = crawler_class(category=category, search=search)
+        elif crawler_type in ["weibo", "rednote", "prosettings"]:
+            # 这些爬虫暂时不需要初始化参数
+            crawler = crawler_class()
         else:
             # 默认：尝试无参数初始化
             crawler = crawler_class()
@@ -208,30 +262,13 @@ class CrawlerService:
                 
                 return result
             
-            elif crawler_type == "movies":
+            # 对于其他所有遵循标准 run() 接口的爬虫
+            elif crawler_type in ["movies", "jobs", "weibo", "rednote", "prosettings"]:
                 if progress_callback:
-                    await progress_callback(5, "正在初始化豆瓣电影爬虫...")
+                    await progress_callback(5, f"正在初始化 {crawler_type} 爬虫...")
                 
                 # 直接异步调用
-                result = await crawler.run()
-                
-                return result
-            
-            elif crawler_type == "jobs":
-                if progress_callback:
-                    await progress_callback(10, "正在初始化招聘爬虫...")
-                
-                if progress_callback:
-                    await progress_callback(30, "正在获取招聘信息...")
-                
-                # 直接异步调用
-                result = await crawler.run()
-                
-                if progress_callback:
-                    await progress_callback(90, "数据处理中...")
-                
-                if progress_callback:
-                    await progress_callback(100, "完成！")
+                result = await crawler.run(progress_callback=progress_callback)
                 
                 return result
             
@@ -241,8 +278,6 @@ class CrawlerService:
         except Exception as e:
             logger.error(f"Error running crawler {crawler_type}: {e}", exc_info=True)
             raise
-
-
 
 # 创建全局服务实例
 crawler_service = CrawlerService()

@@ -8,6 +8,11 @@ from contextlib import asynccontextmanager
 import logging
 import sys
 import os
+import asyncio
+
+# 在 Windows 上使用 ProactorEventLoop (解决 Playwright subprocess 问题)
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 # 将根目录添加到 sys.path，以便能导入 core 和 crawlers
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
