@@ -76,7 +76,15 @@ class BaseCrawler:
                 elif response.status_code == 429:
                     wait_time = (attempt + 1) * 5  # 遇到限流，指数级等待 5s, 10s...
                     logging.warning(f"Rate limited (429). Waiting {wait_time}s...")
+                    if self.use_fake_ua:
+                        self._rotate_ua()  # 换个马甲再试
                     await asyncio.sleep(wait_time)
+                elif response.status_code == 403:
+                    # 403 Forbidden 可能是 UA 被封了
+                    logging.warning(f"Access Forbidden (403). Changing UA and retrying...")
+                    if self.use_fake_ua:
+                        self._rotate_ua()
+                    await asyncio.sleep(2)
                 elif 500 <= response.status_code < 600:
                     logging.warning(f"Server error ({response.status_code}). Retrying...")
                     await asyncio.sleep(2)

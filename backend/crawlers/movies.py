@@ -20,13 +20,12 @@ class MoviesCrawler(BaseCrawler):
             max_pages: 要爬取的页数 (每页25部电影，10页=250部)
             progress_callback: 进度回调函数
         """
-        super().__init__(use_fake_ua=False, base_delay=2.0, progress_callback=progress_callback)
+        super().__init__(use_fake_ua=True, base_delay=2.0, progress_callback=progress_callback)
         self.max_pages = max_pages
         self.base_url = "https://movie.douban.com/top250"
         
         # 设置特定的 headers
         self.client.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Referer': 'https://movie.douban.com/'
         })
         
