@@ -121,7 +121,6 @@ export interface ApiResponse<T = any> {
 export interface RunCrawlerRequest {
   symbol?: string
   page?: number
-  keyword?: string
   max_pages?: number
   category?: string
   search?: string

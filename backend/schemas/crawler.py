@@ -25,7 +25,7 @@ class CrawlerRequest(BaseModel):
                     "extra_params": {"days": 30}
                 },
                 {
-                    "keyword": "python developer",
+                    "search": "python developer",
                     "page": 1
                 }
             ]
