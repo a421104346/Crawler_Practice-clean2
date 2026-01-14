@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminApi, authApi } from '../services/api';
+import { adminApi } from '../services/api';
 import { useAuthStore } from '@/store/authStore';
 import { User, Task } from '../types';
 import { Trash2, User as UserIcon, List, AlertTriangle, LogOut } from 'lucide-react';
