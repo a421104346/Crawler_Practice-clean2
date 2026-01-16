@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useTaskStore } from '@/store/taskStore'
@@ -10,7 +10,7 @@ import { LogOut, RefreshCw, History, Shield } from 'lucide-react'
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const { user, logout, isAuthenticated } = useAuthStore()
-  const { tasks, setTasks, addTask, removeTask } = useTaskStore()
+  const { tasks, setTasks, addTask } = useTaskStore()
   
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -57,18 +57,6 @@ export const Dashboard: React.FC = () => {
     }
   }
 
-  // 处理删除任务
-  const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('确定要删除这个任务吗？')) return
-
-    try {
-      await taskApi.delete(taskId)
-      removeTask(taskId)
-    } catch (error) {
-      console.error('Failed to delete task:', error)
-    }
-  }
-
   // 处理下载结果
   const handleDownloadResult = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId)
@@ -93,6 +81,23 @@ export const Dashboard: React.FC = () => {
     await logout()
     navigate('/login')
   }
+
+  const visibleTasks = useMemo(() => {
+    const activeTasks = tasks.filter(
+      (task) => task.status === 'running' || task.status === 'pending'
+    )
+
+    const completedTasks = tasks
+      .filter((task) => task.status === 'completed')
+      .sort((a, b) => {
+        const aTime = Date.parse(a.created_at.endsWith('Z') ? a.created_at : `${a.created_at}Z`)
+        const bTime = Date.parse(b.created_at.endsWith('Z') ? b.created_at : `${b.created_at}Z`)
+        return bTime - aTime
+      })
+      .slice(0, 5)
+
+    return [...activeTasks, ...completedTasks]
+  }, [tasks])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,7 +158,7 @@ export const Dashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900">
                 任务列表
                 <span className="ml-3 text-sm font-normal text-gray-500">
-                  ({tasks.length} 个任务)
+                  ({visibleTasks.length} 个任务)
                 </span>
               </h2>
               
@@ -171,7 +176,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* 任务卡片网格 */}
-            {tasks.length === 0 ? (
+            {visibleTasks.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">暂无任务</p>
                 <p className="text-gray-400 text-sm mt-2">
@@ -180,11 +185,10 @@ export const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
-                {tasks.map((task) => (
+                {visibleTasks.map((task) => (
                   <TaskCard
                     key={task.id}
                     task={task}
-                    onDelete={handleDeleteTask}
                     onDownload={handleDownloadResult}
                   />
                 ))}

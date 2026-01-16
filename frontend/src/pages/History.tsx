@@ -2,7 +2,7 @@
  * 任务历史页面
  * 显示所有历史任务和统计信息
  */
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Filter, TrendingUp, TrendingDown, Activity } from 'lucide-react'
 import { taskApi, monitoringApi } from '@/services/api'
@@ -20,6 +20,7 @@ export const HistoryPage: React.FC = () => {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // 加载数据
   useEffect(() => {
@@ -43,6 +44,7 @@ export const HistoryPage: React.FC = () => {
       const response = await taskApi.list(params)
       setTasks(response.tasks)
       setTotal(response.total)
+      setSelectedIds(new Set())
     } catch (error) {
       console.error('Failed to load tasks:', error)
     } finally {
@@ -59,16 +61,70 @@ export const HistoryPage: React.FC = () => {
     }
   }
 
+  const selectedCount = useMemo(() => selectedIds.size, [selectedIds])
+
   // 处理删除
   const handleDeleteTask = async (taskId: string) => {
     if (!confirm('确定要删除这个任务吗？')) return
+    if (!confirm('该操作不可恢复，确认删除？')) return
 
     try {
       await taskApi.delete(taskId)
       setTasks(tasks.filter(t => t.id !== taskId))
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(taskId)
+        return next
+      })
       loadStats() // 重新加载统计
     } catch (error) {
       console.error('Failed to delete task:', error)
+    }
+  }
+
+  const toggleSelect = (taskId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(taskId)) {
+        next.delete(taskId)
+      } else {
+        next.add(taskId)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      if (prev.size === tasks.length) {
+        return new Set()
+      }
+      return new Set(tasks.map((task) => task.id))
+    })
+  }
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return
+    if (!confirm(`确定要删除选中的 ${selectedIds.size} 个任务吗？`)) return
+    if (!confirm('该操作不可恢复，确认删除？')) return
+
+    const ids = Array.from(selectedIds)
+    const results = await Promise.allSettled(ids.map((id) => taskApi.delete(id)))
+    const successIds = new Set(
+      results
+        .map((result, index) => ({ result, id: ids[index] }))
+        .filter((entry) => entry.result.status === 'fulfilled')
+        .map((entry) => entry.id)
+    )
+
+    if (successIds.size > 0) {
+      setTasks((prev) => prev.filter((task) => !successIds.has(task.id)))
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        successIds.forEach((id) => next.delete(id))
+        return next
+      })
+      loadStats()
     }
   }
 
@@ -246,6 +302,25 @@ export const HistoryPage: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900">
               任务历史 ({total} 个)
             </h2>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={tasks.length > 0 && selectedIds.size === tasks.length}
+                  onChange={toggleSelectAll}
+                  disabled={tasks.length === 0}
+                  className="h-4 w-4"
+                />
+                全选当前页
+              </label>
+              <button
+                onClick={handleBatchDelete}
+                disabled={selectedCount === 0}
+                className="px-3 py-2 text-sm bg-red-50 text-red-600 rounded-lg disabled:opacity-50 hover:bg-red-100 transition"
+              >
+                批量删除 ({selectedCount})
+              </button>
+            </div>
           </div>
 
           {isLoading ? (
@@ -260,12 +335,21 @@ export const HistoryPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {tasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onDelete={handleDeleteTask}
-                  onDownload={handleDownloadResult}
-                />
+                <div key={task.id} className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(task.id)}
+                    onChange={() => toggleSelect(task.id)}
+                    className="mt-3 h-4 w-4"
+                  />
+                  <div className="flex-1">
+                    <TaskCard
+                      task={task}
+                      onDelete={handleDeleteTask}
+                      onDownload={handleDownloadResult}
+                    />
+                  </div>
+                </div>
               ))}
             </div>
           )}
