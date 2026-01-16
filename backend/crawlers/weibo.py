@@ -24,7 +24,7 @@ class WeiboCrawler(BaseCrawler):
         执行爬取，包含重试机制
         """
         running_loop = asyncio.get_running_loop()
-        if sys.platform == "win32" and running_loop.__class__.__name__ != "ProactorEventLoop":
+        if sys.platform == "win32":
             return await asyncio.to_thread(self._run_in_new_loop, progress_callback, running_loop)
         return await self._run_internal(progress_callback)
 
@@ -35,6 +35,8 @@ class WeiboCrawler(BaseCrawler):
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        if loop.__class__.__name__ != "ProactorEventLoop":
+            raise RuntimeError("Windows loop is not ProactorEventLoop")
 
         async def thread_progress(progress: int, message: str):
             if not progress_callback:
