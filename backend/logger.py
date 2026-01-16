@@ -82,22 +82,26 @@ def setup_logging():
         root_logger.addHandler(console_handler)
 
         # 同时写入文件，便于排查问题
-        file_handler = logging.handlers.RotatingFileHandler(
+        file_handler = logging.handlers.TimedRotatingFileHandler(
             log_dir / "app.log",
-            maxBytes=10 * 1024 * 1024,  # 10 MB
-            backupCount=5,
+            when="midnight",
+            interval=1,
+            backupCount=7,
             encoding="utf-8"
         )
+        file_handler.suffix = "%Y-%m-%d"
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
 
-        error_handler = logging.handlers.RotatingFileHandler(
+        error_handler = logging.handlers.TimedRotatingFileHandler(
             log_dir / "error.log",
-            maxBytes=10 * 1024 * 1024,
-            backupCount=5,
+            when="midnight",
+            interval=1,
+            backupCount=7,
             encoding="utf-8"
         )
+        error_handler.suffix = "%Y-%m-%d"
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(formatter)
         root_logger.addHandler(error_handler)
@@ -112,23 +116,27 @@ def setup_logging():
         root_logger.addHandler(console_handler)
         
         # 2. 文件处理器 - 普通日志
-        file_handler = logging.handlers.RotatingFileHandler(
+        file_handler = logging.handlers.TimedRotatingFileHandler(
             log_dir / "app.log",
-            maxBytes=10 * 1024 * 1024,  # 10 MB
-            backupCount=5,
+            when="midnight",
+            interval=1,
+            backupCount=14,
             encoding="utf-8"
         )
+        file_handler.suffix = "%Y-%m-%d"
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(JSONFormatter())
         root_logger.addHandler(file_handler)
         
         # 3. 错误日志单独文件
-        error_handler = logging.handlers.RotatingFileHandler(
+        error_handler = logging.handlers.TimedRotatingFileHandler(
             log_dir / "error.log",
-            maxBytes=10 * 1024 * 1024,
-            backupCount=5,
+            when="midnight",
+            interval=1,
+            backupCount=14,
             encoding="utf-8"
         )
+        error_handler.suffix = "%Y-%m-%d"
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(JSONFormatter())
         root_logger.addHandler(error_handler)
@@ -139,6 +147,7 @@ def setup_logging():
     logging.getLogger("celery").setLevel(logging.INFO)
     
     logging.info(f"Logging configured: level={settings.LOG_LEVEL}, debug={settings.DEBUG}")
+    logging.info(f"Log files: {log_dir / 'app.log'} | {log_dir / 'error.log'}")
 
 
 # 添加 RotatingFileHandler
