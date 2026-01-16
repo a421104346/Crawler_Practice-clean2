@@ -9,9 +9,9 @@ services:
     image: postgres:15-alpine
     container_name: crawler_postgres_dev
     environment:
-      POSTGRES_USER: dev_user
-      POSTGRES_PASSWORD: dev_password
-      POSTGRES_DB: crawler_dev_db
+      POSTGRES_USER: ${POSTGRES_USER:-dev_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      POSTGRES_DB: ${POSTGRES_DB:-crawler_dev_db}
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     ports:
@@ -36,10 +36,10 @@ services:
     container_name: crawler_backend_dev
     command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     environment:
-      - DATABASE_URL=postgresql+asyncpg://dev_user:dev_password@postgres:5432/crawler_dev_db
-      - REDIS_URL=redis://redis:6379/0
-      - DEBUG=true
-      - USE_CELERY=false  # 开发环境可以不用 Celery
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dev_user}:${POSTGRES_PASSWORD:-CHANGE_ME}@postgres:5432/${POSTGRES_DB:-crawler_dev_db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - DEBUG=${DEBUG:-true}
+      - USE_CELERY=${USE_CELERY:-false}  # 开发环境可以不用 Celery
     depends_on:
       - postgres
       - redis

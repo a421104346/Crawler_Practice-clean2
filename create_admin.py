@@ -15,12 +15,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 async def create_admin():
     print("Creating admin user...")
     
-    # 使用默认值，不进行交互
-    username = "admin"
-    email = "admin@example.com"
-    password = "admin123"
-    
-    print(f"Using default credentials: {username} / {password}")
+    # 从环境变量读取，避免硬编码默认口令
+    username = os.getenv("ADMIN_USERNAME")
+    email = os.getenv("ADMIN_EMAIL")
+    password = os.getenv("ADMIN_PASSWORD")
+
+    if not username or not email or not password:
+        print("Missing admin credentials. Please set:")
+        print("  ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD")
+        return
+
+    print(f"Using credentials for: {username}")
     
     async with AsyncSessionLocal() as db:
         # Check if user exists
@@ -32,7 +37,7 @@ async def create_admin():
             
             # Reset password
             existing_user.hashed_password = pwd_context.hash(password)
-            print(f"Password reset to {password}")
+            print("Password reset completed.")
             
             if not existing_user.is_admin:
                 existing_user.is_admin = True

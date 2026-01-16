@@ -1,24 +1,35 @@
 """
 Password hash generator
 """
+import os
+import sys
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Generate password hashes
-admin_hash = pwd_context.hash("admin123")
-demo_hash = pwd_context.hash("demo123")
+def get_passwords() -> list[str]:
+    if len(sys.argv) > 1:
+        return [item.strip() for item in sys.argv[1:] if item.strip()]
+
+    env_passwords = os.getenv("PASSWORDS", "")
+    if env_passwords:
+        return [item.strip() for item in env_passwords.split(",") if item.strip()]
+
+    return []
+
+
+passwords = get_passwords()
+if not passwords:
+    print("Usage:")
+    print("  python backend/generate_password.py <password1> <password2> ...")
+    print("  or set env PASSWORDS=pass1,pass2")
+    sys.exit(1)
 
 print("=" * 60)
 print("Password hashes generated:")
 print("=" * 60)
-print(f"\nadmin user (password: admin123):")
-print(f"Hash: {admin_hash}")
-print(f"\ndemo user (password: demo123):")
-print(f"Hash: {demo_hash}")
+for value in passwords:
+    hashed = pwd_context.hash(value)
+    print(f"\npassword: {value}")
+    print(f"hash: {hashed}")
 print("\n" + "=" * 60)
-
-# Verify hashes
-print("\nVerification test:")
-print(f"admin123 verify: {pwd_context.verify('admin123', admin_hash)}")
-print(f"demo123 verify: {pwd_context.verify('demo123', demo_hash)}")

@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     # PostgreSQL (生产环境)
     POSTGRES_URL: Optional[str] = None  # 可选的 PostgreSQL URL
     
-    # JWT 认证设置
-    SECRET_KEY: str = "your-secret-key-change-in-production-MUST-BE-CHANGED"
+    # JWT 认证设置（务必通过环境变量配置）
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     

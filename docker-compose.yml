@@ -6,9 +6,9 @@ services:
     image: postgres:15-alpine
     container_name: crawler_postgres
     environment:
-      POSTGRES_USER: crawler_user
-      POSTGRES_PASSWORD: crawler_password
-      POSTGRES_DB: crawler_db
+      POSTGRES_USER: ${POSTGRES_USER:-crawler_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      POSTGRES_DB: ${POSTGRES_DB:-crawler_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -45,11 +45,11 @@ services:
       dockerfile: backend/Dockerfile
     container_name: crawler_backend
     env_file:
-      - .env.production
+      - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://crawler_user:crawler_password@postgres:5432/crawler_db
-      - REDIS_URL=redis://redis:6379/0
-      - USE_CELERY=true
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-crawler_user}:${POSTGRES_PASSWORD:-CHANGE_ME}@postgres:5432/${POSTGRES_DB:-crawler_db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - USE_CELERY=${USE_CELERY:-true}
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,10 +71,10 @@ services:
     container_name: crawler_celery_worker
     command: celery -A backend.celery_app worker --loglevel=info --concurrency=4
     env_file:
-      - .env.production
+      - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://crawler_user:crawler_password@postgres:5432/crawler_db
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-crawler_user}:${POSTGRES_PASSWORD:-CHANGE_ME}@postgres:5432/${POSTGRES_DB:-crawler_db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,10 +94,10 @@ services:
     container_name: crawler_celery_beat
     command: celery -A backend.celery_app beat --loglevel=info
     env_file:
-      - .env.production
+      - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://crawler_user:crawler_password@postgres:5432/crawler_db
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-crawler_user}:${POSTGRES_PASSWORD:-CHANGE_ME}@postgres:5432/${POSTGRES_DB:-crawler_db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       - redis
     networks:
@@ -112,7 +112,7 @@ services:
     container_name: crawler_flower
     command: celery -A backend.celery_app flower --port=5555
     environment:
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       - redis
       - celery_worker
