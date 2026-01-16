@@ -3,6 +3,7 @@
 """
 from backend.core.base_crawler import BaseCrawler
 import logging
+import sys
 from playwright.async_api import async_playwright
 import datetime
 import asyncio
@@ -20,6 +21,38 @@ class RednoteCrawler(BaseCrawler):
     async def run(self, progress_callback=None) -> dict:
         """
         执行爬取，包含重试机制
+        """
+        running_loop = asyncio.get_running_loop()
+        if sys.platform == "win32":
+            return await asyncio.to_thread(self._run_in_new_loop, progress_callback, running_loop)
+        return await self._run_internal(progress_callback)
+
+    def _run_in_new_loop(self, progress_callback, main_loop: asyncio.AbstractEventLoop) -> dict:
+        """
+        在新事件循环中执行（Windows 兼容性）
+        """
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        if loop.__class__.__name__ != "ProactorEventLoop":
+            raise RuntimeError("Windows loop is not ProactorEventLoop")
+
+        async def thread_progress(progress: int, message: str):
+            if not progress_callback:
+                return
+            future = asyncio.run_coroutine_threadsafe(progress_callback(progress, message), main_loop)
+            await asyncio.wrap_future(future)
+
+        try:
+            return loop.run_until_complete(
+                self._run_internal(thread_progress if progress_callback else None)
+            )
+        finally:
+            loop.close()
+
+    async def _run_internal(self, progress_callback=None) -> dict:
+        """
+        实际爬取逻辑
         """
         logger.info("Starting Rednote crawler...")
         
