@@ -29,6 +29,7 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
   const ws = useRef<WebSocket | null>(null)
   const reconnectCount = useRef(0)
   const reconnectTimeout = useRef<NodeJS.Timeout>()
+  const manualClose = useRef(false)
 
   // 使用 refs 保存最新回调，避免因回调引用变化导致不必要的重连
   const onMessageRef = useRef(onMessage)
@@ -45,11 +46,16 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
   }, [onMessage, onOpen, onClose, onError])
 
   const connect = useCallback(() => {
-    if (!taskId || ws.current?.readyState === WebSocket.OPEN) {
+    if (
+      !taskId ||
+      ws.current?.readyState === WebSocket.OPEN ||
+      ws.current?.readyState === WebSocket.CONNECTING
+    ) {
       return
     }
 
     try {
+      manualClose.current = false
       // 构建 WebSocket URL
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
       
@@ -90,6 +96,10 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
         setIsConnected(false)
         onCloseRef.current?.()
 
+        if (manualClose.current) {
+          return
+        }
+
         // 尝试重连
         if (reconnectCount.current < reconnectAttempts) {
           reconnectCount.current += 1
@@ -102,6 +112,9 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
       }
 
       ws.current.onerror = (error) => {
+        if (manualClose.current) {
+          return
+        }
         console.error('WebSocket error:', error)
         onErrorRef.current?.(error)
       }
@@ -117,6 +130,7 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
     }
 
     if (ws.current) {
+      manualClose.current = true
       ws.current.close()
       ws.current = null
     }

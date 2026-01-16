@@ -4,6 +4,7 @@ Remotive 招聘 API 爬虫
 from backend.core.base_crawler import BaseCrawler
 import logging
 from typing import Optional
+import inspect
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +44,23 @@ class JobsCrawler(BaseCrawler):
             return loc.split(",", 1)[0].strip() or loc.strip()
         return loc
     
-    async def run(self) -> dict:
+    async def run(self, progress_callback=None) -> dict:
         """
         执行爬虫流程
         
         Returns:
             爬取结果：{"jobs": [...], "total": N}
         """
+        if progress_callback:
+            self.progress_callback = progress_callback
+
         logger.info(f"Starting jobs crawler: category={self.category}, search={self.search}")
+
+        if self.progress_callback:
+            if inspect.iscoroutinefunction(self.progress_callback):
+                await self.progress_callback(10, "正在请求招聘数据...")
+            else:
+                self.progress_callback(10, "正在请求招聘数据...")
         
         # 构建请求参数
         params = {}
@@ -64,6 +74,11 @@ class JobsCrawler(BaseCrawler):
         
         if not response or response.status_code != 200:
             logger.error(f"Failed to fetch jobs: status={response.status_code if response else 'None'}")
+            if self.progress_callback:
+                if inspect.iscoroutinefunction(self.progress_callback):
+                    await self.progress_callback(90, "请求失败")
+                else:
+                    self.progress_callback(90, "请求失败")
             return {"jobs": [], "total": 0, "error": "Failed to fetch jobs"}
         
         # 解析 JSON 响应
@@ -105,4 +120,9 @@ class JobsCrawler(BaseCrawler):
         }
         
         logger.info(f"Jobs crawler completed: {len(processed_jobs)} jobs")
+        if self.progress_callback:
+            if inspect.iscoroutinefunction(self.progress_callback):
+                await self.progress_callback(100, "完成！")
+            else:
+                self.progress_callback(100, "完成！")
         return result

@@ -7,6 +7,7 @@ import asyncio
 import logging
 from typing import Dict, Any, Optional, Callable
 import json
+import inspect
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -267,8 +268,18 @@ class CrawlerService:
                 if progress_callback:
                     await progress_callback(5, f"正在初始化 {crawler_type} 爬虫...")
                 
-                # 直接异步调用
-                result = await crawler.run(progress_callback=progress_callback)
+                # 直接异步调用（兼容不支持 progress_callback 的 run）
+                run_method = crawler.run
+                supports_progress = False
+                for param in inspect.signature(run_method).parameters.values():
+                    if param.name == "progress_callback" or param.kind == inspect.Parameter.VAR_KEYWORD:
+                        supports_progress = True
+                        break
+
+                if progress_callback and supports_progress:
+                    result = await run_method(progress_callback=progress_callback)
+                else:
+                    result = await run_method()
                 
                 return result
             

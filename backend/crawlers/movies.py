@@ -107,13 +107,15 @@ class MoviesCrawler(BaseCrawler):
         
         return page_movies
     
-    async def run(self) -> dict:
+    async def run(self, progress_callback=None) -> dict:
         """
         执行爬虫流程
         
         Returns:
             爬取结果：{"movies": [...], "total": N}
         """
+        if progress_callback:
+            self.progress_callback = progress_callback
         logger.info(f"Starting movies crawler: max_pages={self.max_pages}")
         
         self.movies = []
