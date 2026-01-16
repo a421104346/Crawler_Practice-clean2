@@ -3,6 +3,7 @@
 """
 from backend.core.base_crawler import BaseCrawler
 import logging
+import sys
 from playwright.async_api import async_playwright
 import datetime
 import asyncio
@@ -15,11 +16,42 @@ class WeiboCrawler(BaseCrawler):
     
     def __init__(self):
         super().__init__(use_fake_ua=True)
-        self.url = "https://weibo.com/newlogin?tabtype=search&gid=&openLoginLayer=0&url=https%3A%2F%2Fwww.weibo.com%2F"
+        # 使用公开热搜页，避免登录墙
+        self.url = "https://s.weibo.com/top/summary?cate=realtimehot"
         
     async def run(self, progress_callback=None) -> dict:
         """
         执行爬取，包含重试机制
+        """
+        running_loop = asyncio.get_running_loop()
+        if sys.platform == "win32" and running_loop.__class__.__name__ != "ProactorEventLoop":
+            return await asyncio.to_thread(self._run_in_new_loop, progress_callback, running_loop)
+        return await self._run_internal(progress_callback)
+
+    def _run_in_new_loop(self, progress_callback, main_loop: asyncio.AbstractEventLoop) -> dict:
+        """
+        在新事件循环中执行（Windows 兼容性）
+        """
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        async def thread_progress(progress: int, message: str):
+            if not progress_callback:
+                return
+            future = asyncio.run_coroutine_threadsafe(progress_callback(progress, message), main_loop)
+            await asyncio.wrap_future(future)
+
+        try:
+            return loop.run_until_complete(
+                self._run_internal(thread_progress if progress_callback else None)
+            )
+        finally:
+            loop.close()
+
+    async def _run_internal(self, progress_callback=None) -> dict:
+        """
+        实际爬取逻辑
         """
         logger.info("Starting Weibo crawler...")
         
@@ -36,7 +68,12 @@ class WeiboCrawler(BaseCrawler):
                     browser = await p.chromium.launch(headless=True)
                     context = await browser.new_context(
                         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                        viewport={'width': 1920, 'height': 1080}
+                        viewport={'width': 1920, 'height': 1080},
+                        locale="zh-CN",
+                        timezone_id="Asia/Shanghai",
+                        extra_http_headers={
+                            "Accept-Language": "zh-CN,zh;q=0.9"
+                        }
                     )
                     page = await context.new_page()
                     
@@ -44,7 +81,10 @@ class WeiboCrawler(BaseCrawler):
                         if progress_callback:
                             await progress_callback(10, "正在访问微博热搜...")
                         
-                        await page.goto(self.url, timeout=30000)
+                        response = await page.goto(self.url, timeout=30000, wait_until="domcontentloaded")
+                        status = response.status if response else None
+                        if status and status >= 400:
+                            raise Exception(f"Unexpected status code: {status}")
                         
                         # 等待加载
                         if progress_callback:
@@ -52,85 +92,66 @@ class WeiboCrawler(BaseCrawler):
                         
                         # 等待列表元素出现
                         try:
-                            await page.wait_for_selector('.vue-recycle-scroller__item-view', timeout=10000)
-                        except:
-                            logger.warning("Timeout waiting for scroller items")
-                            # 可能是加载慢，继续尝试滚动
+                            await page.wait_for_selector("#pl_top_realtimehot table tbody tr", timeout=10000)
+                        except Exception as e:
+                            logger.warning(f"Timeout waiting for hot search table: {e}")
                         
-                        # 滚动抓取
+                        page_url = page.url
+                        if "login" in page_url or "passport" in page_url:
+                            raise Exception("Redirected to login page")
+                        
+                        content = await page.content()
+                        if "访问频次过高" in content or "安全验证" in content or "验证码" in content:
+                            raise Exception("Blocked by anti-bot protection")
+
                         all_items_dict = {}
                         target_count = 50
-                        scroll_steps = 10
-                        
-                        for step in range(scroll_steps):
-                            if progress_callback:
-                                progress = 20 + int((step / scroll_steps) * 60)
-                                await progress_callback(progress, f"正在滚动并抓取 (第 {step+1} 次)...")
-                            
-                            elements = await page.locator('.vue-recycle-scroller__item-view').all()
-                            
-                            for el in elements:
-                                try:
-                                    text = await el.inner_text()
-                                    lines = [l.strip() for l in text.split('\n') if l.strip()]
-                                    
-                                    if not lines:
-                                        continue
-                                    
-                                    rank = 1000
-                                    title = ""
-                                    hot_value = 0
-                                    link = ""
-                                    
-                                    link_el = el.locator('a').first
-                                    if await link_el.count() > 0:
-                                        href = await link_el.get_attribute('href')
-                                        if href:
-                                            link = href if href.startswith('http') else f"https:{href}"
-                                    
-                                    nums = []
-                                    candidates = []
-                                    for line in lines:
-                                        if line.isdigit():
-                                            nums.append(int(line))
-                                        elif len(line) > 1 and line not in ["热", "新", "爆", "商", "Top"]:
-                                            candidates.append(line)
-                                    
-                                    if candidates:
-                                        title = candidates[0]
-                                        
-                                    if len(nums) >= 2:
-                                        nums.sort()
-                                        rank = nums[0]
-                                        hot_value = nums[-1]
-                                    elif len(nums) == 1:
-                                        val = nums[0]
-                                        if val <= 50:
-                                            rank = val
-                                        else:
-                                            hot_value = val
-                                            
-                                    if "Top" in lines:
-                                        rank = 0
-                                        
-                                    if title:
-                                        key = f"{rank}_{title}"
-                                        if key not in all_items_dict:
-                                            all_items_dict[key] = {
-                                                "rank": rank,
-                                                "title": title,
-                                                "hot": hot_value,
-                                                "link": link,
-                                                "crawl_time": datetime.datetime.now().isoformat()
-                                            }
-                                except Exception as e:
-                                    logger.debug(f"Error parsing item: {e}")
+
+                        elements = await page.locator("#pl_top_realtimehot table tbody tr").all()
+                        if not elements:
+                            elements = await page.locator("table tbody tr").all()
+                        for el in elements:
+                            try:
+                                rank_el = el.locator("td.td-01")
+                                if await rank_el.count() == 0:
+                                    rank_el = el.locator("td.ranktop")
+                                rank_text = (await rank_el.inner_text()).strip()
+
+                                title_el = el.locator("td.td-02 a").first
+                                hot_el = el.locator("td.td-03").first
+
+                                title = (await title_el.inner_text()).strip()
+                                if not title:
                                     continue
-                                    
-                            await page.mouse.wheel(0, 800)
-                            await asyncio.sleep(1)
-                            
-                            if len(all_items_dict) >= target_count * 1.5:
+
+                                href = await title_el.get_attribute("href")
+                                link = ""
+                                if href:
+                                    link = href if href.startswith("http") else f"https://s.weibo.com{href}"
+
+                                rank = int(rank_text) if rank_text.isdigit() else 1000
+
+                                hot_value = 0
+                                if await hot_el.count() > 0:
+                                    hot_text = (await hot_el.inner_text()).strip()
+                                    digits = "".join([c for c in hot_text if c.isdigit()])
+                                    if digits:
+                                        hot_value = int(digits)
+
+                                key = f"{rank}_{title}"
+                                if key not in all_items_dict:
+                                    all_items_dict[key] = {
+                                        "rank": rank,
+                                        "title": title,
+                                        "hot": hot_value,
+                                        "link": link,
+                                        "crawl_time": datetime.datetime.now().isoformat()
+                                    }
+                            except Exception as e:
+                                logger.debug(f"Error parsing item: {e}")
+                                continue
+
+                            if len(all_items_dict) >= target_count:
                                 break
                         
                         items = list(all_items_dict.values())
@@ -157,6 +178,9 @@ class WeiboCrawler(BaseCrawler):
                     if progress_callback:
                         await progress_callback(90, f"最终失败: {str(e)}")
                 
+        if not items:
+            raise Exception("No items found after retries")
+
         if progress_callback:
             await progress_callback(100, "完成！")
             

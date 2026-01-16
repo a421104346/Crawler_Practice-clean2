@@ -23,13 +23,16 @@ export const Dashboard: React.FC = () => {
 
   // 加载任务列表
   const loadTasks = useCallback(async () => {
+    if (!isAuthenticated) {
+      return
+    }
     try {
       const response = await taskApi.list({ page: 1, page_size: 20 })
       setTasks(response.tasks)
     } catch (error) {
       console.error('Failed to load tasks:', error)
     }
-  }, [setTasks])
+  }, [isAuthenticated, setTasks])
 
   useEffect(() => {
     loadTasks()

@@ -2,6 +2,7 @@
 认证相关的 API 路由
 """
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timedelta
 from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +17,7 @@ from backend.crud.user import user_crud
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
+optional_bearer = HTTPBearer(auto_error=False)
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
@@ -150,13 +152,25 @@ async def get_current_user_info(
 
 
 @router.post("/logout")
-async def logout(current_user: TokenData = Depends(get_current_user)):
+async def logout(credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer)):
     """
     用户登出
     """
-    logger.info(f"User logged out: {current_user.username}")
-    
+    username = "anonymous"
+    if credentials:
+        try:
+            payload = jwt.decode(
+                credentials.credentials,
+                settings.SECRET_KEY,
+                algorithms=[settings.ALGORITHM]
+            )
+            username = payload.get("sub") or username
+        except Exception as e:
+            logger.warning(f"Logout token decode failed: {e}")
+
+    logger.info(f"User logged out: {username}")
+
     return {
         "message": "Successfully logged out",
-        "username": current_user.username
+        "username": username
     }

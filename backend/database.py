@@ -4,6 +4,7 @@
 """
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
+from fastapi import HTTPException
 from backend.config import settings
 import logging
 
@@ -59,6 +60,9 @@ async def get_db() -> AsyncSession:
         try:
             yield session
             await session.commit()
+        except HTTPException:
+            await session.rollback()
+            raise
         except Exception as e:
             await session.rollback()
             logger.error(f"Database session error: {e}")

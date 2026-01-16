@@ -7,6 +7,18 @@ import { persist } from 'zustand/middleware'
 import type { User } from '@/types'
 import { authApi } from '@/services/api'
 
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const [, payload] = token.split('.')
+    if (!payload) return true
+    const decoded = JSON.parse(atob(payload))
+    const exp = typeof decoded?.exp === 'number' ? decoded.exp * 1000 : 0
+    return !exp || Date.now() >= exp
+  } catch {
+    return true
+  }
+}
+
 interface AuthState {
   // 状态
   user: User | null
@@ -84,7 +96,9 @@ export const useAuthStore = create<AuthState>()(
       // 登出
       logout: async () => {
         try {
-          await authApi.logout()
+          if (get().token) {
+            await authApi.logout()
+          }
         } catch (error) {
           console.error('Logout error:', error)
         } finally {
@@ -100,7 +114,19 @@ export const useAuthStore = create<AuthState>()(
 
       // 获取用户信息
       fetchUser: async () => {
-        if (!get().token) return
+        const token = get().token
+        if (!token) return
+        if (isTokenExpired(token)) {
+          localStorage.removeItem('access_token')
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          })
+          return
+        }
 
         set({ isLoading: true })
         try {
@@ -108,9 +134,14 @@ export const useAuthStore = create<AuthState>()(
           set({ user, isLoading: false })
         } catch (error) {
           console.error('Fetch user error:', error)
-          set({ isLoading: false })
-          // Token 可能已过期，清除状态
-          get().logout()
+          localStorage.removeItem('access_token')
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          })
         }
       },
 

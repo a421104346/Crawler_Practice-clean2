@@ -274,3 +274,202 @@
 {"timestamp": "2026-01-10T05:19:34.440352Z", "level": "ERROR", "logger": "backend.database", "message": "Database session error: 500: Failed to start crawler: (sqlite3.OperationalError) no such table: tasks\n[SQL: INSERT INTO tasks (id, crawler_type, status, progress, params, result, error, started_at, completed_at, duration, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at]\n[parameters: ('6f36dee1-5172-4915-b2ae-da7ac1ed5f4a', 'movies', 'pending', 0, '{\"max_pages\": 1}', None, None, None, None, None, None)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)", "module": "database", "function": "get_db", "line": 64}
 {"timestamp": "2026-01-10T05:19:34.495355Z", "level": "ERROR", "logger": "backend.routers.crawlers", "message": "Error starting crawler yahoo: (sqlite3.OperationalError) no such table: tasks\n[SQL: INSERT INTO tasks (id, crawler_type, status, progress, params, result, error, started_at, completed_at, duration, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at]\n[parameters: ('91f12c45-7496-472b-ab4e-1ebe2a035b01', 'yahoo', 'pending', 0, '{\"symbol\": \"GOOGL\"}', None, None, None, None, None, None)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)", "module": "crawlers", "function": "run_crawler", "line": 129, "exception": "Traceback (most recent call last):\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\base.py\", line 1969, in _exec_single_context\n    self.dialect.do_execute(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\default.py\", line 922, in do_execute\n    cursor.execute(statement, parameters)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\dialects\\sqlite\\aiosqlite.py\", line 146, in execute\n    self._adapt_connection._handle_exception(error)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\dialects\\sqlite\\aiosqlite.py\", line 298, in _handle_exception\n    raise error\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\dialects\\sqlite\\aiosqlite.py\", line 128, in execute\n    self.await_(_cursor.execute(operation, parameters))\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\util\\_concurrency_py3k.py\", line 130, in await_only\n    return current.driver.switch(awaitable)  # type: ignore[no-any-return]\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\util\\_concurrency_py3k.py\", line 195, in greenlet_spawn\n    value = await result\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\cursor.py\", line 48, in execute\n    await self._execute(self._cursor.execute, sql, parameters)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\cursor.py\", line 40, in _execute\n    return await self._conn._execute(fn, *args, **kwargs)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\core.py\", line 133, in _execute\n    return await future\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\core.py\", line 106, in run\n    result = function()\nsqlite3.OperationalError: no such table: tasks\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"A:\\workspace\\To-do\\Crawler_Practice\\backend\\routers\\crawlers.py\", line 98, in run_crawler\n    task = await task_crud.create(db, task_create)\n  File \"A:\\workspace\\To-do\\Crawler_Practice\\backend\\crud\\task.py\", line 34, in create\n    await db.commit()\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\ext\\asyncio\\session.py\", line 1011, in commit\n    await greenlet_spawn(self.sync_session.commit)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\util\\_concurrency_py3k.py\", line 202, in greenlet_spawn\n    result = context.switch(value)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\session.py\", line 1969, in commit\n    trans.commit(_to_root=True)\n  File \"<string>\", line 2, in commit\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\state_changes.py\", line 139, in _go\n    ret_value = fn(self, *arg, **kw)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\session.py\", line 1256, in commit\n    self._prepare_impl()\n  File \"<string>\", line 2, in _prepare_impl\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\state_changes.py\", line 139, in _go\n    ret_value = fn(self, *arg, **kw)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\session.py\", line 1231, in _prepare_impl\n    self.session.flush()\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\session.py\", line 4312, in flush\n    self._flush(objects)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\session.py\", line 4447, in _flush\n    with util.safe_reraise():\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\util\\langhelpers.py\", line 146, in __exit__\n    raise exc_value.with_traceback(exc_tb)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\session.py\", line 4408, in _flush\n    flush_context.execute()\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\unitofwork.py\", line 466, in execute\n    rec.execute(self)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\unitofwork.py\", line 642, in execute\n    util.preloaded.orm_persistence.save_obj(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\persistence.py\", line 93, in save_obj\n    _emit_insert_statements(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\orm\\persistence.py\", line 1227, in _emit_insert_statements\n    result = connection.execute(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\base.py\", line 1416, in execute\n    return meth(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\sql\\elements.py\", line 517, in _execute_on_connection\n    return connection._execute_clauseelement(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\base.py\", line 1639, in _execute_clauseelement\n    ret = self._execute_context(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\base.py\", line 1848, in _execute_context\n    return self._exec_single_context(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\base.py\", line 1988, in _exec_single_context\n    self._handle_dbapi_exception(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\base.py\", line 2344, in _handle_dbapi_exception\n    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\base.py\", line 1969, in _exec_single_context\n    self.dialect.do_execute(\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\engine\\default.py\", line 922, in do_execute\n    cursor.execute(statement, parameters)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\dialects\\sqlite\\aiosqlite.py\", line 146, in execute\n    self._adapt_connection._handle_exception(error)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\dialects\\sqlite\\aiosqlite.py\", line 298, in _handle_exception\n    raise error\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\dialects\\sqlite\\aiosqlite.py\", line 128, in execute\n    self.await_(_cursor.execute(operation, parameters))\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\util\\_concurrency_py3k.py\", line 130, in await_only\n    return current.driver.switch(awaitable)  # type: ignore[no-any-return]\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\sqlalchemy\\util\\_concurrency_py3k.py\", line 195, in greenlet_spawn\n    value = await result\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\cursor.py\", line 48, in execute\n    await self._execute(self._cursor.execute, sql, parameters)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\cursor.py\", line 40, in _execute\n    return await self._conn._execute(fn, *args, **kwargs)\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\core.py\", line 133, in _execute\n    return await future\n  File \"C:\\Users\\Alex Zhai\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python310\\site-packages\\aiosqlite\\core.py\", line 106, in run\n    result = function()\nsqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks\n[SQL: INSERT INTO tasks (id, crawler_type, status, progress, params, result, error, started_at, completed_at, duration, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at]\n[parameters: ('91f12c45-7496-472b-ab4e-1ebe2a035b01', 'yahoo', 'pending', 0, '{\"symbol\": \"GOOGL\"}', None, None, None, None, None, None)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"}
 {"timestamp": "2026-01-10T05:19:34.512353Z", "level": "ERROR", "logger": "backend.database", "message": "Database session error: 500: Failed to start crawler: (sqlite3.OperationalError) no such table: tasks\n[SQL: INSERT INTO tasks (id, crawler_type, status, progress, params, result, error, started_at, completed_at, duration, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at]\n[parameters: ('91f12c45-7496-472b-ab4e-1ebe2a035b01', 'yahoo', 'pending', 0, '{\"symbol\": \"GOOGL\"}', None, None, None, None, None, None)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)", "module": "database", "function": "get_db", "line": 64}
+[2026-01-16 10:23:15] ERROR    [asyncio] Task exception was never retrieved
+future: <Task finished name='Task-163' coro=<Connection.run() done, defined at A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py:305> exception=NotImplementedError()>
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py", line 312, in run
+    await self._transport.connect()
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 133, in connect
+    raise exc
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 120, in connect
+    self._proc = await asyncio.create_subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\subprocess.py", line 218, in create_subprocess_exec
+    transport, protocol = await loop.subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 1681, in subprocess_exec
+    transport = await self._make_subprocess_transport(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 498, in _make_subprocess_transport
+    raise NotImplementedError
+NotImplementedError
+[2026-01-16 10:23:15] ERROR    [backend.crawlers.weibo] Attempt 1 failed: 
+[2026-01-16 10:23:17] ERROR    [asyncio] Task exception was never retrieved
+future: <Task finished name='Task-185' coro=<Connection.run() done, defined at A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py:305> exception=NotImplementedError()>
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py", line 312, in run
+    await self._transport.connect()
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 133, in connect
+    raise exc
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 120, in connect
+    self._proc = await asyncio.create_subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\subprocess.py", line 218, in create_subprocess_exec
+    transport, protocol = await loop.subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 1681, in subprocess_exec
+    transport = await self._make_subprocess_transport(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 498, in _make_subprocess_transport
+    raise NotImplementedError
+NotImplementedError
+[2026-01-16 10:23:17] ERROR    [backend.crawlers.weibo] Attempt 2 failed: 
+[2026-01-16 10:23:21] ERROR    [asyncio] Task exception was never retrieved
+future: <Task finished name='Task-188' coro=<Connection.run() done, defined at A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py:305> exception=NotImplementedError()>
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py", line 312, in run
+    await self._transport.connect()
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 133, in connect
+    raise exc
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 120, in connect
+    self._proc = await asyncio.create_subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\subprocess.py", line 218, in create_subprocess_exec
+    transport, protocol = await loop.subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 1681, in subprocess_exec
+    transport = await self._make_subprocess_transport(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 498, in _make_subprocess_transport
+    raise NotImplementedError
+NotImplementedError
+[2026-01-16 10:23:21] ERROR    [backend.crawlers.weibo] Attempt 3 failed: 
+[2026-01-16 10:23:21] ERROR    [backend.services.crawler_service] Error running crawler weibo: No items found after retries
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\backend\services\crawler_service.py", line 271, in run_crawler
+    result = await crawler.run(progress_callback=progress_callback)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 151, in run
+    raise Exception("No items found after retries")
+Exception: No items found after retries
+[2026-01-16 10:23:21] ERROR    [backend.routers.crawlers] Task 99686a58-22f7-42d6-97d1-a13300c70fa0 failed: No items found after retries
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\backend\routers\crawlers.py", line 195, in execute_crawler_task
+    result = await crawler_service.run_crawler(
+  File "A:\workspace\To-do\Crawler_Practice\backend\services\crawler_service.py", line 271, in run_crawler
+    result = await crawler.run(progress_callback=progress_callback)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 151, in run
+    raise Exception("No items found after retries")
+Exception: No items found after retries
+[2026-01-16 10:25:34] ERROR    [asyncio] Task exception was never retrieved
+future: <Task finished name='Task-239' coro=<Connection.run() done, defined at A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py:305> exception=NotImplementedError()>
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py", line 312, in run
+    await self._transport.connect()
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 133, in connect
+    raise exc
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 120, in connect
+    self._proc = await asyncio.create_subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\subprocess.py", line 218, in create_subprocess_exec
+    transport, protocol = await loop.subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 1681, in subprocess_exec
+    transport = await self._make_subprocess_transport(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 498, in _make_subprocess_transport
+    raise NotImplementedError
+NotImplementedError
+[2026-01-16 10:25:34] ERROR    [backend.crawlers.weibo] Attempt 1 failed: 
+[2026-01-16 10:25:36] ERROR    [asyncio] Task exception was never retrieved
+future: <Task finished name='Task-242' coro=<Connection.run() done, defined at A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py:305> exception=NotImplementedError()>
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py", line 312, in run
+    await self._transport.connect()
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 133, in connect
+    raise exc
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 120, in connect
+    self._proc = await asyncio.create_subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\subprocess.py", line 218, in create_subprocess_exec
+    transport, protocol = await loop.subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 1681, in subprocess_exec
+    transport = await self._make_subprocess_transport(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 498, in _make_subprocess_transport
+    raise NotImplementedError
+NotImplementedError
+[2026-01-16 10:25:36] ERROR    [backend.crawlers.weibo] Attempt 2 failed: 
+[2026-01-16 10:25:40] ERROR    [asyncio] Task exception was never retrieved
+future: <Task finished name='Task-245' coro=<Connection.run() done, defined at A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py:305> exception=NotImplementedError()>
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_connection.py", line 312, in run
+    await self._transport.connect()
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 133, in connect
+    raise exc
+  File "A:\workspace\To-do\Crawler_Practice\.venv\lib\site-packages\playwright\_impl\_transport.py", line 120, in connect
+    self._proc = await asyncio.create_subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\subprocess.py", line 218, in create_subprocess_exec
+    transport, protocol = await loop.subprocess_exec(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 1681, in subprocess_exec
+    transport = await self._make_subprocess_transport(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 498, in _make_subprocess_transport
+    raise NotImplementedError
+NotImplementedError
+[2026-01-16 10:25:40] ERROR    [backend.crawlers.weibo] Attempt 3 failed: 
+[2026-01-16 10:25:40] ERROR    [backend.services.crawler_service] Error running crawler weibo: No items found after retries
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\backend\services\crawler_service.py", line 271, in run_crawler
+    result = await crawler.run(progress_callback=progress_callback)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 151, in run
+    if progress_callback:
+Exception: No items found after retries
+[2026-01-16 10:25:40] ERROR    [backend.routers.crawlers] Task 21dfc8d7-79a2-4a1e-836a-97be9e7be6f0 failed: No items found after retries
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\backend\routers\crawlers.py", line 195, in execute_crawler_task
+    result = await crawler_service.run_crawler(
+  File "A:\workspace\To-do\Crawler_Practice\backend\services\crawler_service.py", line 271, in run_crawler
+    result = await crawler.run(progress_callback=progress_callback)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 151, in run
+    if progress_callback:
+Exception: No items found after retries
+[2026-01-16 10:32:22] ERROR    [backend.database] Database session error: 403: Not authenticated
+[2026-01-16 10:32:22] ERROR    [backend.database] Database session error: 403: Not authenticated
+[2026-01-16 10:32:41] ERROR    [backend.crawlers.weibo] Attempt 1 failed: BrowserType.launch: Executable doesn't exist at C:\Users\Alex Zhai\AppData\Local\ms-playwright\chromium_headless_shell-1200\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     playwright install                                     ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+[2026-01-16 10:32:44] ERROR    [backend.crawlers.weibo] Attempt 2 failed: BrowserType.launch: Executable doesn't exist at C:\Users\Alex Zhai\AppData\Local\ms-playwright\chromium_headless_shell-1200\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     playwright install                                     ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+[2026-01-16 10:32:48] ERROR    [backend.crawlers.weibo] Attempt 3 failed: BrowserType.launch: Executable doesn't exist at C:\Users\Alex Zhai\AppData\Local\ms-playwright\chromium_headless_shell-1200\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     playwright install                                     ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+[2026-01-16 10:32:48] ERROR    [backend.services.crawler_service] Error running crawler weibo: No items found after retries
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\backend\services\crawler_service.py", line 271, in run_crawler
+    result = await crawler.run(progress_callback=progress_callback)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 28, in run
+    return await asyncio.to_thread(self._run_in_new_loop, progress_callback, running_loop)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 46, in _run_in_new_loop
+    return loop.run_until_complete(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 182, in _run_internal
+    raise Exception("No items found after retries")
+Exception: No items found after retries
+[2026-01-16 10:32:48] ERROR    [backend.routers.crawlers] Task 990cfb0a-d09e-499a-b877-452bfb550bcb failed: No items found after retries
+Traceback (most recent call last):
+  File "A:\workspace\To-do\Crawler_Practice\backend\routers\crawlers.py", line 195, in execute_crawler_task
+    result = await crawler_service.run_crawler(
+  File "A:\workspace\To-do\Crawler_Practice\backend\services\crawler_service.py", line 271, in run_crawler
+    result = await crawler.run(progress_callback=progress_callback)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 28, in run
+    return await asyncio.to_thread(self._run_in_new_loop, progress_callback, running_loop)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 46, in _run_in_new_loop
+    return loop.run_until_complete(
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\asyncio\base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "A:\workspace\To-do\Crawler_Practice\backend\crawlers\weibo.py", line 182, in _run_internal
+    raise Exception("No items found after retries")
+Exception: No items found after retries

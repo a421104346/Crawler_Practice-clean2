@@ -11,14 +11,53 @@ const api = axios.create({
   },
 });
 
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return true;
+    const decoded = JSON.parse(atob(payload));
+    const exp = typeof decoded?.exp === 'number' ? decoded.exp * 1000 : 0;
+    return !exp || Date.now() >= exp;
+  } catch {
+    return true;
+  }
+};
+
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
-  if (token) {
+  if (token && !isTokenExpired(token)) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (token) {
+    localStorage.removeItem('access_token');
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const url: string = error?.config?.url || '';
+    if (status === 401) {
+      localStorage.removeItem('access_token');
+      const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register');
+      if (!isAuthRoute && typeof window !== 'undefined') {
+        const path = window.location.pathname || '';
+        if (path !== '/login') {
+          window.location.assign('/login');
+        }
+      }
+    }
+    if (status === 403 && typeof window !== 'undefined') {
+      const path = window.location.pathname || '';
+      if (path.startsWith('/admin')) {
+        window.location.assign('/dashboard');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authApi = {
   login: async (username, password) => {

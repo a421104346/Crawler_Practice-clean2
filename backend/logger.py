@@ -80,6 +80,27 @@ def setup_logging():
         )
         console_handler.setFormatter(formatter)
         root_logger.addHandler(console_handler)
+
+        # 同时写入文件，便于排查问题
+        file_handler = logging.handlers.RotatingFileHandler(
+            log_dir / "app.log",
+            maxBytes=10 * 1024 * 1024,  # 10 MB
+            backupCount=5,
+            encoding="utf-8"
+        )
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+        error_handler = logging.handlers.RotatingFileHandler(
+            log_dir / "error.log",
+            maxBytes=10 * 1024 * 1024,
+            backupCount=5,
+            encoding="utf-8"
+        )
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(formatter)
+        root_logger.addHandler(error_handler)
     
     else:
         # 生产环境：JSON 格式
