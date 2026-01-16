@@ -2851,3 +2851,33 @@ WHERE tasks.id = ?
 [2026-01-16 10:38:38] INFO     [sqlalchemy.engine.Engine] [generated in 0.00060s] ('2b9fc981-6d8c-4dba-9a1e-ff0e20d13150',)
 [2026-01-16 10:38:38] INFO     [sqlalchemy.engine.Engine] COMMIT
 [2026-01-16 10:38:38] INFO     [backend.middleware] Request completed
+[2026-01-16 10:42:58] INFO     [backend.routers.websocket] WebSocket disconnected for task 2b9fc981-6d8c-4dba-9a1e-ff0e20d13150
+[2026-01-16 10:42:58] INFO     [backend.routers.websocket] Client disconnected from task 2b9fc981-6d8c-4dba-9a1e-ff0e20d13150
+[2026-01-16 10:42:58] INFO     [backend.main] Shutting down application...
+[2026-01-16 10:42:58] INFO     [backend.database] Database connection closed
+[2026-01-16 10:42:58] INFO     [backend.main] Application shutdown complete
+[2026-01-16 10:43:00] INFO     [root] Logging configured: level=INFO, debug=True
+[2026-01-16 10:43:00] INFO     [root] Log files: logs\app.log | logs\error.log
+[2026-01-16 10:43:00] INFO     [backend.main] Starting Crawler Management API v1.0.0
+[2026-01-16 10:43:00] INFO     [backend.main] Initializing database...
+[2026-01-16 10:43:00] INFO     [sqlalchemy.engine.Engine] BEGIN (implicit)
+[2026-01-16 10:43:00] INFO     [sqlalchemy.engine.Engine] PRAGMA main.table_info("users")
+[2026-01-16 10:43:00] INFO     [sqlalchemy.engine.Engine] [raw sql] ()
+[2026-01-16 10:43:00] INFO     [sqlalchemy.engine.Engine] PRAGMA main.table_info("tasks")
+[2026-01-16 10:43:00] INFO     [sqlalchemy.engine.Engine] [raw sql] ()
+[2026-01-16 10:43:00] INFO     [sqlalchemy.engine.Engine] COMMIT
+[2026-01-16 10:43:00] INFO     [backend.database] Database initialized successfully
+[2026-01-16 10:43:00] INFO     [backend.main] Database initialized successfully
+[2026-01-16 10:43:01] INFO     [backend.routers.websocket] WebSocket connected for task 2b9fc981-6d8c-4dba-9a1e-ff0e20d13150. Total: 1
+[2026-01-16 10:43:01] INFO     [backend.middleware] Request started
+[2026-01-16 10:43:01] INFO     [sqlalchemy.engine.Engine] BEGIN (implicit)
+[2026-01-16 10:43:01] INFO     [sqlalchemy.engine.Engine] SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.is_active AS users_is_active, users.is_admin AS users_is_admin, users.created_at AS users_created_at, users.updated_at AS users_updated_at, users.last_login AS users_last_login 
+FROM users 
+WHERE users.id = ?
+[2026-01-16 10:43:01] INFO     [sqlalchemy.engine.Engine] [generated in 0.00037s] ('d47c2def-ae38-4cbb-9756-da8b6df202df',)
+[2026-01-16 10:43:01] INFO     [sqlalchemy.engine.Engine] SELECT tasks.id, tasks.user_id, tasks.crawler_type, tasks.status, tasks.progress, tasks.params, tasks.result, tasks.error, tasks.created_at, tasks.started_at, tasks.completed_at, tasks.duration, tasks.retry_count 
+FROM tasks 
+WHERE tasks.id = ?
+[2026-01-16 10:43:01] INFO     [sqlalchemy.engine.Engine] [generated in 0.00027s] ('2b9fc981-6d8c-4dba-9a1e-ff0e20d13150',)
+[2026-01-16 10:43:01] INFO     [sqlalchemy.engine.Engine] COMMIT
+[2026-01-16 10:43:01] INFO     [backend.middleware] Request completed
