@@ -38,11 +38,39 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database...")
     await init_db()
     logger.info("Database initialized successfully")
+
+    recycler_task = None
+    if settings.TASK_RECYCLE_INTERVAL_SECONDS > 0 and settings.TASK_RUNNING_TIMEOUT_SECONDS > 0:
+        async def recycle_loop():
+            from backend.database import AsyncSessionLocal
+            from backend.crud.task import task_crud
+            while True:
+                try:
+                    async with AsyncSessionLocal() as db:
+                        recycled = await task_crud.recycle_stale_running(
+                            db,
+                            timeout_seconds=settings.TASK_RUNNING_TIMEOUT_SECONDS
+                        )
+                    if recycled:
+                        logger.warning(f"Recycled {recycled} stale running tasks")
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    logger.error(f"Task recycle loop error: {exc}", exc_info=True)
+                await asyncio.sleep(settings.TASK_RECYCLE_INTERVAL_SECONDS)
+
+        recycler_task = asyncio.create_task(recycle_loop())
     
     yield
     
     # 关闭事件
     logger.info("Shutting down application...")
+    if recycler_task:
+        recycler_task.cancel()
+        try:
+            await recycler_task
+        except asyncio.CancelledError:
+            pass
     await close_db()
     logger.info("Application shutdown complete")
 

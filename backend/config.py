@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     FIRECRAWL_API_KEY: Optional[str] = os.getenv("FIRECRAWL_API_KEY")
     FIRECRAWL_BASE_URL: str = os.getenv("FIRECRAWL_BASE_URL", "https://api.firecrawl.dev")
 
+    # 任务回收设置（秒）
+    TASK_RECYCLE_INTERVAL_SECONDS: int = int(os.getenv("TASK_RECYCLE_INTERVAL_SECONDS", "300"))
+    TASK_RUNNING_TIMEOUT_SECONDS: int = int(os.getenv("TASK_RUNNING_TIMEOUT_SECONDS", "1800"))
+
     # Admin bootstrap (create_admin.py)
     ADMIN_USERNAME: Optional[str] = None
     ADMIN_EMAIL: Optional[str] = None

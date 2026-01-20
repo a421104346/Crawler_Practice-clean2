@@ -2,11 +2,11 @@
 任务 CRUD 操作
 """
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, and_, or_
 from backend.models.task import TaskModel
 from backend.schemas.task import TaskCreate, TaskUpdate
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import json
 
 
@@ -156,9 +156,15 @@ class TaskCRUD:
         # 如果状态变为 completed 或 failed，记录完成时间和计算时长
         if update_data.get("status") in ["completed", "failed"]:
             if not task.completed_at:
-                update_data["completed_at"] = datetime.utcnow()
-                if task.started_at:
-                    duration = (datetime.utcnow() - task.started_at).total_seconds()
+                started_at = task.started_at
+                if started_at and started_at.tzinfo is not None:
+                    now = datetime.now(timezone.utc)
+                else:
+                    now = datetime.utcnow()
+
+                update_data["completed_at"] = now
+                if started_at:
+                    duration = (now - started_at).total_seconds()
                     update_data["duration"] = duration
         
         # 执行更新
@@ -168,6 +174,36 @@ class TaskCRUD:
         await db.commit()
         await db.refresh(task)
         return task
+
+    async def recycle_stale_running(
+        self,
+        db: AsyncSession,
+        timeout_seconds: int
+    ) -> int:
+        """回收运行超时的任务，返回更新数量"""
+        if timeout_seconds <= 0:
+            return 0
+
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(seconds=timeout_seconds)
+
+        stale_started = and_(TaskModel.started_at.isnot(None), TaskModel.started_at < cutoff)
+        stale_unstarted = and_(TaskModel.started_at.is_(None), TaskModel.created_at < cutoff)
+
+        stmt = (
+            update(TaskModel)
+            .where(TaskModel.status == "running")
+            .where(or_(stale_started, stale_unstarted))
+            .values(
+                status="failed",
+                error="Task timed out",
+                completed_at=now
+            )
+        )
+
+        result = await db.execute(stmt)
+        await db.commit()
+        return result.rowcount or 0
     
     async def delete(
         self,
