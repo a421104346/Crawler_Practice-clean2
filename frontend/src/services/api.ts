@@ -51,13 +51,14 @@ api.interceptors.response.use(
     }
     if (status === 403 && typeof window !== 'undefined') {
       const path = window.location.pathname || '';
+      const isAdminRoute = path.startsWith('/admin');
+      if (isAdminRoute) {
+        window.location.assign('/dashboard');
+        return Promise.reject(error);
+      }
       if (!isAuthRoute && path !== '/login') {
         localStorage.removeItem('access_token');
         window.location.assign('/login?reason=expired');
-        return Promise.reject(error);
-      }
-      if (path.startsWith('/admin')) {
-        window.location.assign('/dashboard');
       }
     }
     return Promise.reject(error);
