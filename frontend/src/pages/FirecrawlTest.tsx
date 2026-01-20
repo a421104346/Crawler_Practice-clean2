@@ -21,6 +21,7 @@ export const FirecrawlTestPage: React.FC = () => {
   const [onlyMainContent, setOnlyMainContent] = useState(true)
   const [waitForMs, setWaitForMs] = useState('1200')
   const [timeoutMs, setTimeoutMs] = useState('30000')
+  const [cookie, setCookie] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<FirecrawlScrapeResponse | null>(null)
@@ -75,7 +76,8 @@ export const FirecrawlTestPage: React.FC = () => {
         formats,
         only_main_content: onlyMainContent,
         wait_for: parsedWaitFor,
-        timeout_ms: parsedTimeout
+        timeout_ms: parsedTimeout,
+        cookie: cookie || undefined
       })
       setResult(response)
       if (!response.success) {
@@ -98,6 +100,7 @@ export const FirecrawlTestPage: React.FC = () => {
     setOnlyMainContent(true)
     setWaitForMs('1200')
     setTimeoutMs('30000')
+    setCookie('')
     setError(null)
     setResult(null)
   }
@@ -152,6 +155,20 @@ export const FirecrawlTestPage: React.FC = () => {
                   {option.label}
                 </label>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">登录 Cookie（可选）</label>
+            <textarea
+              value={cookie}
+              onChange={(event) => setCookie(event.target.value)}
+              className="w-full h-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
+              placeholder="从浏览器 Network 请求里复制 Cookie 头（完整粘贴）"
+            />
+            <div className="text-xs text-gray-500 mt-2 space-y-1">
+              <div>获取方式：登录目标站点 → F12 → Network → 选中页面请求 → Request Headers → Cookie</div>
+              <div>仅用于当前请求，不会保存到本地。</div>
             </div>
           </div>
 

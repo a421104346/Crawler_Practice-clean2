@@ -30,6 +30,14 @@ class FirecrawlScrapeRequest(BaseModel):
         ge=1000,
         description="请求超时毫秒数（可选）"
     )
+    cookie: Optional[str] = Field(
+        default=None,
+        description="登录态 Cookie（可选，用于登录后页面）"
+    )
+    headers: Optional[Dict[str, str]] = Field(
+        default=None,
+        description="自定义请求头（可选）"
+    )
 
 
 class FirecrawlScrapeResponse(BaseModel):

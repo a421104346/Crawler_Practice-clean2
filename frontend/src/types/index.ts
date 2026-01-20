@@ -136,6 +136,8 @@ export interface FirecrawlScrapeRequest {
   only_main_content: boolean
   wait_for?: number
   timeout_ms?: number
+  cookie?: string
+  headers?: Record<string, string>
 }
 
 export interface FirecrawlScrapeResponse {
