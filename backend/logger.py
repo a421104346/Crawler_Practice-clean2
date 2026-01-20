@@ -58,7 +58,7 @@ def setup_logging():
     - 生产环境：JSON 格式输出到文件和控制台
     """
     # 创建日志目录
-    log_dir = Path("logs")
+    log_dir = Path(settings.LOG_DIR)
     log_dir.mkdir(exist_ok=True)
     
     # 根日志器

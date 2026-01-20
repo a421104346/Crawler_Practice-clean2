@@ -120,6 +120,8 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=True,  # 开发模式下自动重载
+        # 排除日志文件，避免写日志触发热重载循环
+        reload_excludes=["logs/*", "logs/*.log", "data/*.db", "__pycache__/*"],
         log_level=settings.LOG_LEVEL.lower()
     )
 

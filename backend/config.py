@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     
     # 日志级别
     LOG_LEVEL: str = "INFO"
+    # 日志目录（默认放在项目根目录，避免触发热重载）
+    LOG_DIR: str = os.getenv("LOG_DIR", os.path.join(os.path.dirname(BASE_DIR), "logs"))
     
     class Config:
         env_file = ".env"
