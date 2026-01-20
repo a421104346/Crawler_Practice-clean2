@@ -2,11 +2,13 @@
 配置文件：管理环境变量和全局设置
 """
 import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 # 获取当前文件所在目录 (backend/)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 项目根目录
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
 # 数据目录配置
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -29,6 +31,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = f"sqlite+aiosqlite:///{DB_PATH}"
     # PostgreSQL (生产环境)
     POSTGRES_URL: Optional[str] = None  # 可选的 PostgreSQL URL
+    POSTGRES_USER: Optional[str] = None
+    POSTGRES_PASSWORD: Optional[str] = None
+    POSTGRES_DB: Optional[str] = None
     
     # JWT 认证设置（务必通过环境变量配置）
     SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME")
@@ -44,15 +49,26 @@ class Settings(BaseSettings):
     # Celery 设置
     CELERY_BROKER_URL: Optional[str] = None  # 默认使用 REDIS_URL
     CELERY_RESULT_BACKEND: Optional[str] = None  # 默认使用 REDIS_URL
+    USE_CELERY: bool = False
     
     # 日志级别
     LOG_LEVEL: str = "INFO"
     # 日志目录（默认放在项目根目录，避免触发热重载）
     LOG_DIR: str = os.getenv("LOG_DIR", os.path.join(os.path.dirname(BASE_DIR), "logs"))
+
+    # Firecrawl 配置
+    FIRECRAWL_API_KEY: Optional[str] = os.getenv("FIRECRAWL_API_KEY")
+    FIRECRAWL_BASE_URL: str = os.getenv("FIRECRAWL_BASE_URL", "https://api.firecrawl.dev")
+
+    # Admin bootstrap (create_admin.py)
+    ADMIN_USERNAME: Optional[str] = None
+    ADMIN_EMAIL: Optional[str] = None
+    ADMIN_PASSWORD: Optional[str] = None
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=(os.path.join(PROJECT_ROOT, ".env"), os.path.join(BASE_DIR, ".env")),
+        case_sensitive=True
+    )
 
 
 # 创建全局配置实例

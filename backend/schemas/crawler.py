@@ -1,14 +1,18 @@
 """
 爬虫相关的 Pydantic 模型
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Any, Dict
 
 
 class CrawlerRequest(BaseModel):
     """启动爬虫的请求模型"""
     # 爬虫特定参数
-    symbol: Optional[str] = Field(None, description="股票代码（Yahoo爬虫）", example="AAPL")
+    symbol: Optional[str] = Field(
+        None,
+        description="股票代码（Yahoo爬虫）",
+        json_schema_extra={"example": "AAPL"}
+    )
     page: Optional[int] = Field(1, description="页码", ge=1)
     max_pages: Optional[int] = Field(1, description="最大页数（Movies爬虫）", ge=1)
     search: Optional[str] = Field(None, description="搜索关键词（Jobs爬虫）")
@@ -17,8 +21,8 @@ class CrawlerRequest(BaseModel):
     # 通用参数
     extra_params: Optional[Dict[str, Any]] = Field(default={}, description="额外参数")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "examples": [
                 {
                     "symbol": "AAPL",
@@ -30,27 +34,44 @@ class CrawlerRequest(BaseModel):
                 }
             ]
         }
+    )
 
 
 class CrawlerResponse(BaseModel):
     """爬虫响应模型（启动任务后的响应）"""
-    status: str = Field(..., description="状态", example="success")
+    status: str = Field(
+        ...,
+        description="状态",
+        json_schema_extra={"example": "success"}
+    )
     task_id: str = Field(..., description="任务ID")
-    message: str = Field(..., description="消息", example="Task created successfully")
+    message: str = Field(
+        ...,
+        description="消息",
+        json_schema_extra={"example": "Task created successfully"}
+    )
     timestamp: Optional[str] = None
 
 
 class CrawlerInfo(BaseModel):
     """爬虫信息模型"""
-    name: str = Field(..., description="爬虫名称", example="yahoo")
-    display_name: str = Field(..., description="显示名称", example="Yahoo Finance")
+    name: str = Field(
+        ...,
+        description="爬虫名称",
+        json_schema_extra={"example": "yahoo"}
+    )
+    display_name: str = Field(
+        ...,
+        description="显示名称",
+        json_schema_extra={"example": "Yahoo Finance"}
+    )
     description: str = Field(..., description="描述")
     parameters: list[str] = Field(..., description="必需参数")
     optional_parameters: list[str] = Field(default=[], description="可选参数")
     status: str = Field(default="active", description="爬虫状态")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "yahoo",
                 "display_name": "Yahoo Finance",
@@ -60,3 +81,4 @@ class CrawlerInfo(BaseModel):
                 "status": "active"
             }
         }
+    )

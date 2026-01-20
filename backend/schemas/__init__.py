@@ -12,6 +12,10 @@ from backend.schemas.crawler import (
     CrawlerResponse,
     CrawlerInfo
 )
+from backend.schemas.firecrawl import (
+    FirecrawlScrapeRequest,
+    FirecrawlScrapeResponse
+)
 
 __all__ = [
     "TaskCreate",
@@ -20,5 +24,7 @@ __all__ = [
     "TaskUpdate",
     "CrawlerRequest",
     "CrawlerResponse",
-    "CrawlerInfo"
+    "CrawlerInfo",
+    "FirecrawlScrapeRequest",
+    "FirecrawlScrapeResponse"
 ]

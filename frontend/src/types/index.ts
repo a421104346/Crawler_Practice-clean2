@@ -127,6 +127,23 @@ export interface RunCrawlerRequest {
   extra_params?: Record<string, any>
 }
 
+// Firecrawl
+export type FirecrawlFormat = 'markdown' | 'html' | 'rawHtml' | 'screenshot' | 'json'
+
+export interface FirecrawlScrapeRequest {
+  url: string
+  formats: FirecrawlFormat[]
+  only_main_content: boolean
+  wait_for?: number
+  timeout_ms?: number
+}
+
+export interface FirecrawlScrapeResponse {
+  success: boolean
+  data?: Record<string, unknown>
+  error?: string
+}
+
 // 健康检查响应
 export interface HealthResponse {
   status: 'healthy' | 'unhealthy' | 'degraded'

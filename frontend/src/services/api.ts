@@ -1,4 +1,4 @@
-import { Task, User } from '../types';
+import { Task, User, FirecrawlScrapeRequest, FirecrawlScrapeResponse } from '../types';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
@@ -185,6 +185,13 @@ export const monitoringApi = {
 
   metrics: async () => {
     const response = await api.get('/monitoring/metrics');
+    return response.data;
+  }
+};
+
+export const firecrawlApi = {
+  scrape: async (payload: FirecrawlScrapeRequest): Promise<FirecrawlScrapeResponse> => {
+    const response = await api.post('/firecrawl/scrape', payload);
     return response.data;
   }
 };

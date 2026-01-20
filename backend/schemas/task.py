@@ -1,14 +1,18 @@
 """
 任务相关的 Pydantic 模型
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Any
 from datetime import datetime
 
 
 class TaskCreate(BaseModel):
     """创建任务的请求模型"""
-    crawler_type: str = Field(..., description="爬虫类型", example="yahoo")
+    crawler_type: str = Field(
+        ...,
+        description="爬虫类型",
+        json_schema_extra={"example": "yahoo"}
+    )
     params: Optional[dict] = Field(default={}, description="爬虫参数")
     user_id: Optional[str] = Field(None, description="用户ID（可选）")
 
@@ -36,8 +40,7 @@ class TaskResponse(BaseModel):
     duration: Optional[float] = None
     user_id: Optional[str] = None
     
-    class Config:
-        from_attributes = True  # 允许从 ORM 模型转换
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TaskListResponse(BaseModel):

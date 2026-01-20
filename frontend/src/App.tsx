@@ -9,6 +9,7 @@ import { LoginPage } from '@/pages/Login'
 import { RegisterPage } from '@/pages/Register'
 import { Dashboard } from '@/pages/Dashboard'
 import { HistoryPage } from '@/pages/History'
+import { FirecrawlTestPage } from '@/pages/FirecrawlTest'
 import AdminDashboard from '@/pages/AdminDashboard'
 
 // 受保护的路由组件
@@ -104,6 +105,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <HistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/firecrawl"
+          element={
+            <ProtectedRoute>
+              <FirecrawlTestPage />
             </ProtectedRoute>
           }
         />
