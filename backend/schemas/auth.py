@@ -1,7 +1,7 @@
 """
 认证相关的 Pydantic 模型
 """
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Optional
 
 
@@ -14,8 +14,18 @@ class UserLogin(BaseModel):
 class UserRegister(BaseModel):
     """用户注册请求"""
     username: str = Field(..., min_length=3, max_length=50)
-    email: Optional[str] = None
+    email: Optional[EmailStr] = None
     password: str = Field(..., min_length=6)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value):
+        if value is None:
+            return None
+        if isinstance(value, str):
+            normalized = value.strip()
+            return normalized or None
+        return value
 
 
 class Token(BaseModel):

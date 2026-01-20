@@ -23,9 +23,10 @@ class UserCRUD:
         """创建新用户"""
         hashed_password = pwd_context.hash(user_in.password)
         
+        normalized_email = user_in.email or None
         user = UserModel(
             username=user_in.username,
-            email=user_in.email,
+            email=normalized_email,
             hashed_password=hashed_password,
             is_active=True
         )

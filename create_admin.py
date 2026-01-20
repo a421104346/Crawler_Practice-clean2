@@ -2,6 +2,7 @@ import asyncio
 import sys
 import os
 from passlib.context import CryptContext
+from dotenv import load_dotenv
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +12,12 @@ from backend.models.user import UserModel
 from sqlalchemy import select
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# 读取 .env（项目根目录或 backend 目录）
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+BACKEND_DIR = os.path.join(PROJECT_ROOT, "backend")
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
+load_dotenv(os.path.join(BACKEND_DIR, ".env"))
 
 async def create_admin():
     print("Creating admin user...")
