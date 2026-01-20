@@ -1,4 +1,4 @@
-import { Task, User, FirecrawlScrapeRequest, FirecrawlScrapeResponse } from '../types';
+import { FirecrawlScrapeRequest, FirecrawlScrapeResponse } from '../types';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
@@ -39,18 +39,23 @@ api.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
     const url: string = error?.config?.url || '';
+    const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register');
     if (status === 401) {
       localStorage.removeItem('access_token');
-      const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register');
       if (!isAuthRoute && typeof window !== 'undefined') {
         const path = window.location.pathname || '';
         if (path !== '/login') {
-          window.location.assign('/login');
+          window.location.assign('/login?reason=expired');
         }
       }
     }
     if (status === 403 && typeof window !== 'undefined') {
       const path = window.location.pathname || '';
+      if (!isAuthRoute && path !== '/login') {
+        localStorage.removeItem('access_token');
+        window.location.assign('/login?reason=expired');
+        return Promise.reject(error);
+      }
       if (path.startsWith('/admin')) {
         window.location.assign('/dashboard');
       }
@@ -60,12 +65,12 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-  login: async (username, password) => {
+  login: async (username: string, password: string) => {
     const response = await api.post('/auth/login', { username, password });
     return response.data;
   },
   
-  register: async (username, email, password) => {
+  register: async (username: string, email: string | null, password: string) => {
     const response = await api.post('/auth/register', { username, email, password });
     return response.data;
   },

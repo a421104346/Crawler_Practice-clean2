@@ -1,13 +1,14 @@
 /**
  * 登录页面
  */
-import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import React, { useMemo, useState } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { LogIn, Loader2 } from 'lucide-react'
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { login, isLoading, error, clearError } = useAuthStore()
   
   const [username, setUsername] = useState('')
@@ -31,6 +32,12 @@ export const LoginPage: React.FC = () => {
     }
   }
 
+  const expiredMessage = useMemo(() => {
+    return searchParams.get('reason') === 'expired'
+      ? '登录已失效，请重新登录'
+      : null
+  }, [searchParams])
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full">
@@ -46,6 +53,11 @@ export const LoginPage: React.FC = () => {
         {/* 登录表单 */}
         <div className="bg-white rounded-lg shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {expiredMessage && (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">
+                {expiredMessage}
+              </div>
+            )}
             {/* 错误提示 */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
