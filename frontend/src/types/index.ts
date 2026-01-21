@@ -146,6 +146,33 @@ export interface FirecrawlScrapeResponse {
   error?: string
 }
 
+export interface FirecrawlWeiboHotRankRequest {
+  pages?: number
+  wait_for?: number
+  timeout_ms?: number
+  cookie?: string
+}
+
+export interface WeiboHotRankPost {
+  username: string
+  user_link: string
+  content: string
+}
+
+export interface FirecrawlWeiboHotRankResult {
+  topic_title: string
+  topic_url: string
+  pages: number
+  total_posts: number
+  posts: WeiboHotRankPost[]
+}
+
+export interface FirecrawlWeiboHotRankResponse {
+  success: boolean
+  data?: FirecrawlWeiboHotRankResult
+  error?: string
+}
+
 // 健康检查响应
 export interface HealthResponse {
   status: 'healthy' | 'unhealthy' | 'degraded'

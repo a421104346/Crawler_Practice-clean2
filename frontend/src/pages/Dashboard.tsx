@@ -5,7 +5,7 @@ import { useTaskStore } from '@/store/taskStore'
 import { CrawlerPanel } from '@/components/CrawlerPanel'
 import { TaskCard } from '@/components/TaskCard'
 import { taskApi } from '@/services/api'
-import { LogOut, RefreshCw, History, Shield, FlaskConical } from 'lucide-react'
+import { LogOut, RefreshCw, History, Shield, FlaskConical, Flame } from 'lucide-react'
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -138,6 +138,14 @@ export const Dashboard: React.FC = () => {
               >
                 <FlaskConical size={18} />
                 Firecrawl 测试
+              </button>
+
+              <button
+                onClick={() => navigate('/firecrawl/hot-rank1')}
+                className="flex items-center gap-2 px-4 py-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+              >
+                <Flame size={18} />
+                热搜 Rank1
               </button>
               
               <button

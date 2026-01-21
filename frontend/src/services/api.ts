@@ -1,4 +1,9 @@
-import { FirecrawlScrapeRequest, FirecrawlScrapeResponse } from '../types';
+import {
+  FirecrawlScrapeRequest,
+  FirecrawlScrapeResponse,
+  FirecrawlWeiboHotRankRequest,
+  FirecrawlWeiboHotRankResponse
+} from '../types';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
@@ -198,6 +203,12 @@ export const monitoringApi = {
 export const firecrawlApi = {
   scrape: async (payload: FirecrawlScrapeRequest): Promise<FirecrawlScrapeResponse> => {
     const response = await api.post('/firecrawl/scrape', payload);
+    return response.data;
+  },
+  weiboHotRank1: async (
+    payload: FirecrawlWeiboHotRankRequest
+  ): Promise<FirecrawlWeiboHotRankResponse> => {
+    const response = await api.post('/firecrawl/weibo/hot-rank1', payload);
     return response.data;
   }
 };

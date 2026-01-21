@@ -10,6 +10,7 @@ import { RegisterPage } from '@/pages/Register'
 import { Dashboard } from '@/pages/Dashboard'
 import { HistoryPage } from '@/pages/History'
 import { FirecrawlTestPage } from '@/pages/FirecrawlTest'
+import { FirecrawlHotRankPage } from '@/pages/FirecrawlHotRank'
 import AdminDashboard from '@/pages/AdminDashboard'
 
 // 受保护的路由组件
@@ -113,6 +114,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <FirecrawlTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/firecrawl/hot-rank1"
+          element={
+            <ProtectedRoute>
+              <FirecrawlHotRankPage />
             </ProtectedRoute>
           }
         />

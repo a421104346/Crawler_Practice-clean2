@@ -14,7 +14,11 @@ from backend.schemas.crawler import (
 )
 from backend.schemas.firecrawl import (
     FirecrawlScrapeRequest,
-    FirecrawlScrapeResponse
+    FirecrawlScrapeResponse,
+    FirecrawlWeiboHotRankRequest,
+    FirecrawlWeiboHotRankResponse,
+    FirecrawlWeiboHotRankResult,
+    WeiboHotRankPost
 )
 
 __all__ = [
@@ -26,5 +30,9 @@ __all__ = [
     "CrawlerResponse",
     "CrawlerInfo",
     "FirecrawlScrapeRequest",
-    "FirecrawlScrapeResponse"
+    "FirecrawlScrapeResponse",
+    "FirecrawlWeiboHotRankRequest",
+    "FirecrawlWeiboHotRankResponse",
+    "FirecrawlWeiboHotRankResult",
+    "WeiboHotRankPost"
 ]
