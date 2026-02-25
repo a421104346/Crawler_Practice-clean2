@@ -1,11 +1,11 @@
 /**
- * 全局样式
+ * Global styles
  */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 自定义滚动条 */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -25,7 +25,7 @@
   background: #555;
 }
 
-/* 全局样式 */
+/* Global styles */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -40,7 +40,7 @@ code {
     monospace;
 }
 
-/* 动画 */
+/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -56,7 +56,7 @@ code {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* 加载动画 */
+/* Loading animation */
 @keyframes spin {
   to {
     transform: rotate(360deg);

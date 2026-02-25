@@ -1,6 +1,6 @@
 /**
  * WebSocket Hook
- * 用于实时接收任务进度更新
+ * Real-time task progress updates
  */
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { WebSocketMessage } from '@/types'
@@ -31,13 +31,13 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
   const reconnectTimeout = useRef<NodeJS.Timeout>()
   const manualClose = useRef(false)
 
-  // 使用 refs 保存最新回调，避免因回调引用变化导致不必要的重连
+  // Use refs to store latest callbacks to avoid unnecessary reconnections
   const onMessageRef = useRef(onMessage)
   const onOpenRef = useRef(onOpen)
   const onCloseRef = useRef(onClose)
   const onErrorRef = useRef(onError)
 
-  // 每次渲染更新 refs
+  // Update refs on each render
   useEffect(() => {
     onMessageRef.current = onMessage
     onOpenRef.current = onOpen
@@ -56,11 +56,10 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
 
     try {
       manualClose.current = false
-      // 构建 WebSocket URL
+      // Build WebSocket URL
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
       
-      // 修复：开发环境下直接连接后端 8000 端口，避开 Vite 代理的不稳定性
-      // 这解决了 "WebSocket is closed before the connection is established" 的问题
+      // In dev, connect directly to backend port 8000 to bypass Vite proxy instability
       let host = window.location.host
       if (host.includes('localhost:3000') || host.includes('localhost:5173')) {
         host = host.split(':')[0] + ':8000'
@@ -80,7 +79,7 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
       ws.current.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data)
-          // 简单的类型检查，确保消息符合 WebSocketMessage 的基本结构
+          // Basic type check to ensure message conforms to WebSocketMessage
           if (message && typeof message === 'object') {
             const typedMessage = message as WebSocketMessage
             setLastMessage(typedMessage)
@@ -100,7 +99,7 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
           return
         }
 
-        // 尝试重连
+        // Attempt reconnection
         if (reconnectCount.current < reconnectAttempts) {
           reconnectCount.current += 1
           // console.log(`Attempting to reconnect (${reconnectCount.current}/${reconnectAttempts})...`)
@@ -121,7 +120,7 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error)
     }
-    // 移除回调函数作为依赖，避免因父组件重新渲染导致重连
+    // Exclude callbacks from deps to prevent reconnection on parent re-render
   }, [taskId, reconnectAttempts, reconnectInterval])
 
   const disconnect = useCallback(() => {
@@ -146,7 +145,7 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
     }
   }, [])
 
-  // 自动连接和清理
+  // Auto-connect and cleanup
   useEffect(() => {
     if (taskId) {
       connect()

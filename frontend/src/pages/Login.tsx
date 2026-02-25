@@ -1,5 +1,5 @@
 /**
- * 登录页面
+ * Login page
  */
 import React, { useMemo, useState } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
@@ -28,29 +28,29 @@ export const LoginPage: React.FC = () => {
         navigate('/dashboard')
       }
     } catch (error) {
-      // 错误已经在 store 中处理
+      // Error already handled in store
     }
   }
 
   const expiredMessage = useMemo(() => {
     return searchParams.get('reason') === 'expired'
-      ? '登录已失效，请重新登录'
+      ? 'Session expired, please log in again'
       : null
   }, [searchParams])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full">
-        {/* Logo 和标题 */}
+        {/* Logo and title */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
             <LogIn className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">爬虫管理平台</h1>
-          <p className="text-gray-600 mt-2">登录以访问您的爬虫控制面板</p>
+          <h1 className="text-3xl font-bold text-gray-900">Crawler Management Platform</h1>
+          <p className="text-gray-600 mt-2">Log in to access your dashboard</p>
         </div>
 
-        {/* 登录表单 */}
+        {/* Login form */}
         <div className="bg-white rounded-lg shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {expiredMessage && (
@@ -58,17 +58,17 @@ export const LoginPage: React.FC = () => {
                 {expiredMessage}
               </div>
             )}
-            {/* 错误提示 */}
+            {/* Error alert */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                 {error}
               </div>
             )}
 
-            {/* 用户名 */}
+            {/* Username */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                用户名
+                Username
               </label>
               <input
                 id="username"
@@ -77,15 +77,15 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholder="请输入用户名"
+                placeholder="Enter username"
                 autoComplete="username"
               />
             </div>
 
-            {/* 密码 */}
+            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                密码
+                Password
               </label>
               <input
                 id="password"
@@ -94,12 +94,12 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholder="请输入密码"
+                placeholder="Enter password"
                 autoComplete="current-password"
               />
             </div>
 
-            {/* 登录按钮 */}
+            {/* Login button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -108,33 +108,33 @@ export const LoginPage: React.FC = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin mr-2" size={20} />
-                  登录中...
+                  Logging in...
                 </>
               ) : (
                 <>
                   <LogIn className="mr-2" size={20} />
-                  登录
+                  Log In
                 </>
               )}
             </button>
           </form>
 
-          {/* 注册链接 */}
+          {/* Register link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              还没有账号？{' '}
+              Don't have an account?{' '}
               <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-                立即注册
+                Sign Up
               </Link>
             </p>
           </div>
 
-          {/* 默认账号提示 */}
+          {/* Default credentials hint */}
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-500 text-center mb-2">默认测试账号：</p>
+            <p className="text-sm text-gray-500 text-center mb-2">Default test credentials:</p>
             <div className="text-sm text-gray-600 text-center space-y-1">
-              <p>用户名: <code className="bg-gray-100 px-2 py-1 rounded">admin</code></p>
-              <p>密码: <code className="bg-gray-100 px-2 py-1 rounded">admin123</code></p>
+              <p>Username: <code className="bg-gray-100 px-2 py-1 rounded">admin</code></p>
+              <p>Password: <code className="bg-gray-100 px-2 py-1 rounded">admin123</code></p>
             </div>
           </div>
         </div>

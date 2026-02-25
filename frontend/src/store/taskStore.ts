@@ -13,7 +13,7 @@ export const useTaskStore = create<TaskState>((set) => ({
   tasks: [],
   setTasks: (tasks) => set({ tasks }),
   addTask: (task) => set((state) => {
-    // 避免重复添加
+    // Prevent duplicate entries
     if (state.tasks.some(t => t.id === task.id)) return state
     return { tasks: [task, ...state.tasks] }
   }),

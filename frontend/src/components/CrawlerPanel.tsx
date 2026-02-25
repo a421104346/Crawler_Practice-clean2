@@ -1,6 +1,6 @@
 /**
- * 爬虫控制面板组件
- * 用于选择爬虫类型和设置参数
+ * Crawler control panel component
+ * For selecting crawler type and configuring parameters
  */
 import React, { useState, useEffect } from 'react'
 import { Play, Loader2 } from 'lucide-react'
@@ -18,7 +18,7 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string>('')
 
-  // 加载爬虫列表
+  // Load crawler list
   useEffect(() => {
     loadCrawlers()
   }, [])
@@ -35,15 +35,15 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
     }
   }
 
-  // 获取当前选中爬虫的信息
+  // Get selected crawler info
   const currentCrawler = crawlers.find(c => c.name === selectedCrawler)
 
-  // 处理参数变化
+  // Handle parameter change
   const handleParamChange = (key: string, value: string) => {
     setParams(prev => ({ ...prev, [key]: value }))
   }
 
-  // 运行爬虫
+  // Run crawler
   const handleRun = async () => {
     if (!selectedCrawler) return
 
@@ -53,7 +53,7 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
     try {
       const crawlerParams: RunCrawlerRequest = {}
 
-      // 根据爬虫类型准备参数
+      // Prepare parameters by crawler type
       if (selectedCrawler === 'yahoo') {
         crawlerParams.symbol = params.symbol || 'AAPL'
       } else if (selectedCrawler === 'movies') {
@@ -72,13 +72,13 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
 
       const response = await crawlerApi.run(selectedCrawler, crawlerParams)
       
-      // 通知父组件任务已创建
+      // Notify parent that task was created
       onTaskCreated(response.task_id)
       
-      // 清空表单
+      // Clear form
       setParams({})
     } catch (error: any) {
-      const message = error.response?.data?.detail || '启动爬虫失败'
+      const message = error.response?.data?.detail || 'Failed to start crawler'
       setError(message)
     } finally {
       setIsRunning(false)
@@ -87,19 +87,19 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">爬虫控制面板</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Crawler Control Panel</h2>
 
-      {/* 错误提示 */}
+      {/* Error alert */}
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           {error}
         </div>
       )}
 
-      {/* 爬虫选择 */}
+      {/* Crawler selection */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          选择爬虫
+          Select Crawler
         </label>
         <select
           value={selectedCrawler}
@@ -113,7 +113,7 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
           ))}
         </select>
 
-        {/* 爬虫描述 */}
+        {/* Crawler description */}
         {currentCrawler && (
           <p className="mt-2 text-sm text-gray-600">
             {currentCrawler.description}
@@ -121,30 +121,30 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
         )}
       </div>
 
-      {/* 参数输入 */}
+      {/* Parameter inputs */}
       {currentCrawler && (
         <div className="space-y-4 mb-6">
-          {/* Yahoo 爬虫参数 */}
+          {/* Yahoo crawler parameters */}
           {selectedCrawler === 'yahoo' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                股票代码 *
+                Stock Symbol *
               </label>
               <input
                 type="text"
                 value={params.symbol || ''}
                 onChange={(e) => handleParamChange('symbol', e.target.value)}
-                placeholder="例如: AAPL, MSFT, GOOGL"
+                placeholder="e.g. AAPL, MSFT, GOOGL"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           )}
 
-          {/* Movies 爬虫参数 */}
+          {/* Movies crawler parameters */}
           {selectedCrawler === 'movies' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                页数（可选）
+                Pages (optional)
               </label>
               <input
                 type="number"
@@ -152,44 +152,44 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
                 max="10"
                 value={params.max_pages || ''}
                 onChange={(e) => handleParamChange('max_pages', e.target.value)}
-                placeholder="默认为 1"
+                placeholder="Default: 1"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <p className="mt-1 text-xs text-gray-500">每页25部电影，10页=250部</p>
+              <p className="mt-1 text-xs text-gray-500">25 movies per page, 10 pages = 250 movies</p>
             </div>
           )}
 
-          {/* Jobs 爬虫参数 */}
+          {/* Jobs crawler parameters */}
           {selectedCrawler === 'jobs' && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  搜索关键词（可选）
+                  Search Keywords (optional)
                 </label>
                 <input
                   type="text"
                   value={params.search || ''}
                   onChange={(e) => handleParamChange('search', e.target.value)}
-                  placeholder="例如: python, data analyst"
+                  placeholder="e.g. python, data analyst"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  分类（可选）
+                  Category (optional)
                 </label>
                 <select
                   value={params.category || ''}
                   onChange={(e) => handleParamChange('category', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">全部</option>
-                  <option value="software-dev">软件开发</option>
-                  <option value="data">数据分析</option>
+                  <option value="">All</option>
+                  <option value="software-dev">Software Dev</option>
+                  <option value="data">Data</option>
                   <option value="devops">DevOps</option>
-                  <option value="design">设计</option>
-                  <option value="marketing">市场营销</option>
+                  <option value="design">Design</option>
+                  <option value="marketing">Marketing</option>
                 </select>
               </div>
             </div>
@@ -197,7 +197,7 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
         </div>
       )}
 
-      {/* 运行按钮 */}
+      {/* Run button */}
       <button
         onClick={handleRun}
         disabled={isRunning || !selectedCrawler}
@@ -206,12 +206,12 @@ export const CrawlerPanel: React.FC<CrawlerPanelProps> = ({ onTaskCreated }) => 
         {isRunning ? (
           <>
             <Loader2 className="animate-spin mr-2" size={20} />
-            启动中...
+            Starting...
           </>
         ) : (
           <>
             <Play className="mr-2" size={20} />
-            开始爬取
+            Start Crawling
           </>
         )}
       </button>

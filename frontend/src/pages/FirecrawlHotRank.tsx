@@ -84,13 +84,13 @@ export const FirecrawlHotRankPage: React.FC = () => {
       })
       setResult(response)
       if (!response.success) {
-        setError(response.error || '抓取失败')
+        setError(response.error || 'Scrape failed')
       }
     } catch (error) {
       const message =
         error instanceof Error && error.message
           ? error.message
-          : '请求失败，请检查 Firecrawl 配置或网络'
+          : 'Request failed, please check Firecrawl configuration or network'
       setError(message)
     } finally {
       setIsLoading(false)
@@ -138,7 +138,7 @@ export const FirecrawlHotRankPage: React.FC = () => {
     const name = cookieName.trim()
     const value = cookie.trim()
     if (!name || !value) {
-      setError('请填写 Cookie 名称和内容再保存')
+      setError('Please fill in cookie name and value before saving')
       return
     }
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -155,11 +155,11 @@ export const FirecrawlHotRankPage: React.FC = () => {
   const handleUpdateCookie = () => {
     const value = cookie.trim()
     if (!selectedCookieId) {
-      setError('请先选择一个已保存的 Cookie')
+      setError('Please select a saved cookie first')
       return
     }
     if (!value) {
-      setError('当前 Cookie 为空，无法更新')
+      setError('Current cookie is empty, cannot update')
       return
     }
     setSavedCookies((prev) =>
@@ -173,7 +173,7 @@ export const FirecrawlHotRankPage: React.FC = () => {
 
   const handleDeleteCookie = () => {
     if (!selectedCookieId) {
-      setError('请先选择一个已保存的 Cookie')
+      setError('Please select a saved cookie first')
       return
     }
     setSavedCookies((prev) => prev.filter((item) => item.id !== selectedCookieId))
@@ -183,7 +183,7 @@ export const FirecrawlHotRankPage: React.FC = () => {
 
   const handleExportCookies = () => {
     if (savedCookies.length === 0) {
-      setError('当前没有可导出的 Cookie')
+      setError('No cookies available to export')
       return
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -209,7 +209,7 @@ export const FirecrawlHotRankPage: React.FC = () => {
       try {
         const parsed = JSON.parse(String(reader.result)) as SavedCookie[]
         if (!Array.isArray(parsed)) {
-          throw new Error('Cookie 文件格式不正确')
+          throw new Error('Invalid cookie file format')
         }
         const normalized = parsed
           .filter((item) => item?.name && item?.value)
@@ -220,13 +220,13 @@ export const FirecrawlHotRankPage: React.FC = () => {
             updated_at: item.updated_at || new Date().toISOString()
           }))
         if (normalized.length === 0) {
-          setError('未在文件中找到有效 Cookie')
+          setError('No valid cookies found in file')
           return
         }
         setSavedCookies((prev) => [...normalized, ...prev])
         setError(null)
       } catch (error) {
-        setError(error instanceof Error ? error.message : '导入失败')
+        setError(error instanceof Error ? error.message : 'Import failed')
       } finally {
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
@@ -250,13 +250,13 @@ export const FirecrawlHotRankPage: React.FC = () => {
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft size={18} />
-                返回
+                Back
               </button>
-              <h1 className="text-xl font-bold text-gray-900">Firecrawl 热搜 Rank1</h1>
+              <h1 className="text-xl font-bold text-gray-900">Firecrawl Hot Rank1</h1>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Flame size={16} />
-              微博热搜话题抓取
+              Weibo Hot Topic Scraper
             </div>
           </div>
         </div>
@@ -266,17 +266,17 @@ export const FirecrawlHotRankPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">抓取页数</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Pages to Scrape</label>
               <input
                 value={pages}
                 onChange={(event) => setPages(event.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
               />
-              <p className="text-xs text-gray-500 mt-1">最大 5 页，默认抓取前 5 页</p>
+              <p className="text-xs text-gray-500 mt-1">Max 5 pages, default: first 5 pages</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">等待加载 (ms)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Wait For (ms)</label>
               <input
                 value={waitForMs}
                 onChange={(event) => setWaitForMs(event.target.value)}
@@ -285,7 +285,7 @@ export const FirecrawlHotRankPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">超时 (ms)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Timeout (ms)</label>
               <input
                 value={timeoutMs}
                 onChange={(event) => setTimeoutMs(event.target.value)}
@@ -295,31 +295,31 @@ export const FirecrawlHotRankPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">登录 Cookie（可选）</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Login Cookie (optional)</label>
             <textarea
               value={cookie}
               onChange={(event) => setCookie(event.target.value)}
               className="w-full h-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
-              placeholder="从浏览器 Network 请求里复制 Cookie 头（完整粘贴）"
+              placeholder="Paste cookie header from browser Network tab"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Cookie 名称</label>
+                <label className="block text-xs text-gray-500 mb-1">Cookie Name</label>
                 <input
                   value={cookieName}
                   onChange={(event) => setCookieName(event.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                  placeholder="例如：我的微博账号"
+                  placeholder="e.g. My Weibo Account"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">已保存 Cookie</label>
+                <label className="block text-xs text-gray-500 mb-1">Saved Cookies</label>
                 <select
                   value={selectedCookieId}
                   onChange={(event) => handleSelectCookie(event.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                 >
-                  <option value="">请选择</option>
+                  <option value="">Select</option>
                   {savedCookies.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
@@ -332,31 +332,31 @@ export const FirecrawlHotRankPage: React.FC = () => {
                   onClick={handleSaveCookie}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  保存为新
+                  Save New
                 </button>
                 <button
                   onClick={handleUpdateCookie}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  更新选中
+                  Update
                 </button>
                 <button
                   onClick={handleDeleteCookie}
                   className="px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50"
                 >
-                  删除
+                  Delete
                 </button>
                 <button
                   onClick={handleExportCookies}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  导出
+                  Export
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  导入
+                  Import
                 </button>
                 <input
                   ref={fileInputRef}
@@ -368,8 +368,8 @@ export const FirecrawlHotRankPage: React.FC = () => {
               </div>
             </div>
             <div className="text-xs text-gray-500 mt-2 space-y-1">
-              <div>如遇反爬或登录墙，可以填 Cookie 提升成功率。</div>
-              <div>Cookie 仅保存到本地浏览器（localStorage），不会上传服务器。</div>
+              <div>If blocked by anti-scraping or login walls, adding a cookie may improve success rate.</div>
+              <div>Cookies are stored locally in the browser (localStorage) and are not uploaded to the server.</div>
             </div>
           </div>
 
@@ -379,20 +379,20 @@ export const FirecrawlHotRankPage: React.FC = () => {
               disabled={isLoading}
               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
             >
-              {isLoading ? '抓取中...' : '开始抓取'}
+              {isLoading ? 'Scraping...' : 'Start Scrape'}
             </button>
             <button
               onClick={handleReset}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
             >
-              重置
+              Reset
             </button>
             <button
               onClick={handleDownloadJson}
               disabled={!result}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-60"
             >
-              下载 JSON
+              Download JSON
             </button>
           </div>
 
@@ -405,24 +405,24 @@ export const FirecrawlHotRankPage: React.FC = () => {
           {resultData && (
             <div className="space-y-4">
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
-                <div>话题：{resultData.topic_title}</div>
+                <div>Topic: {resultData.topic_title}</div>
                 <div>
-                  链接：
+                  Link:
                   <a
                     href={resultData.topic_url}
                     target="_blank"
                     rel="noreferrer"
                     className="text-blue-600 hover:text-blue-700 ml-2"
                   >
-                    打开话题页
+                    Open Topic Page
                   </a>
                 </div>
-                <div>抓取页数：{resultData.pages}</div>
-                <div>帖子数量：{resultData.total_posts}</div>
+                <div>Pages Scraped: {resultData.pages}</div>
+                <div>Total Posts: {resultData.total_posts}</div>
               </div>
 
               {posts.length === 0 ? (
-                <div className="text-sm text-gray-500">当前未抓取到帖子内容。</div>
+                <div className="text-sm text-gray-500">No posts scraped yet.</div>
               ) : (
                 <div className="space-y-3">
                   {posts.map((post, index) => (
@@ -439,7 +439,7 @@ export const FirecrawlHotRankPage: React.FC = () => {
                             rel="noreferrer"
                             className="text-blue-600 hover:text-blue-700 text-xs"
                           >
-                            主页
+                            Profile
                           </a>
                         )}
                       </div>

@@ -1,8 +1,8 @@
 /**
- * 全局类型定义
+ * Global type definitions
  */
 
-// 爬虫信息
+// Crawler info
 export interface CrawlerInfo {
   name: string
   display_name: string
@@ -12,10 +12,10 @@ export interface CrawlerInfo {
   status: 'active' | 'inactive'
 }
 
-// 任务状态
+// Task status
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
 
-// 任务
+// Task
 export interface Task {
   id: string
   crawler_type: string
@@ -31,7 +31,7 @@ export interface Task {
   user_id: string | null
 }
 
-// 任务列表响应
+// Task list response
 export interface TaskListResponse {
   total: number
   tasks: Task[]
@@ -39,7 +39,7 @@ export interface TaskListResponse {
   page_size: number
 }
 
-// WebSocket 消息类型
+// WebSocket message types
 export type WebSocketMessageType = 'connection' | 'update' | 'complete' | 'error' | 'pong';
 
 export interface BaseWebSocketMessage {
@@ -48,19 +48,19 @@ export interface BaseWebSocketMessage {
   message?: string;
 }
 
-// 连接欢迎消息
+// Connection welcome message
 export interface ConnectionMessage extends BaseWebSocketMessage {
   type: 'connection';
   task_id: string;
   message: string;
 }
 
-// 心跳响应
+// Heartbeat response
 export interface PongMessage extends BaseWebSocketMessage {
   type: 'pong';
 }
 
-// 任务更新消息（后端目前未发送 type 字段）
+// Task update message (backend may not send type field)
 export interface TaskUpdateMessage extends BaseWebSocketMessage {
   task_id: string;
   status: TaskStatus;
@@ -68,12 +68,12 @@ export interface TaskUpdateMessage extends BaseWebSocketMessage {
   message: string;
   result?: any;
   error?: string;
-  type?: 'update' | 'complete' | 'error'; // 兼容性定义
+  type?: 'update' | 'complete' | 'error';
 }
 
 export type WebSocketMessage = ConnectionMessage | PongMessage | TaskUpdateMessage;
 
-// 用户
+// User
 export interface User {
   id: string
   username: string
@@ -85,27 +85,27 @@ export interface User {
   last_login?: string
 }
 
-// 登录请求
+// Login request
 export interface LoginRequest {
   username: string
   password: string
 }
 
-// 登录响应
+// Login response
 export interface LoginResponse {
   access_token: string
   token_type: string
   expires_in: number
 }
 
-// 注册请求
+// Register request
 export interface RegisterRequest {
   username: string
   email?: string
   password: string
 }
 
-// API 响应
+// API response
 export interface ApiResponse<T = any> {
   status: 'success' | 'error'
   data?: T
@@ -117,7 +117,7 @@ export interface ApiResponse<T = any> {
   timestamp?: string
 }
 
-// 爬虫运行请求
+// Run crawler request
 export interface RunCrawlerRequest {
   symbol?: string
   page?: number
@@ -173,7 +173,7 @@ export interface FirecrawlWeiboHotRankResponse {
   error?: string
 }
 
-// 健康检查响应
+// Health check response
 export interface HealthResponse {
   status: 'healthy' | 'unhealthy' | 'degraded'
   timestamp: string
@@ -184,7 +184,7 @@ export interface HealthResponse {
   }
 }
 
-// 统计数据
+// Stats response
 export interface StatsResponse {
   tasks: {
     total: number

@@ -14,14 +14,14 @@ export const Dashboard: React.FC = () => {
   
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // 检查认证状态
+  // Check auth status
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login')
     }
   }, [isAuthenticated, navigate])
 
-  // 加载任务列表
+  // Load task list
   const loadTasks = useCallback(async () => {
     if (!isAuthenticated) {
       return
@@ -38,31 +38,31 @@ export const Dashboard: React.FC = () => {
     loadTasks()
   }, [loadTasks])
 
-  // 刷新任务列表
+  // Refresh task list
   const handleRefresh = async () => {
     setIsRefreshing(true)
     await loadTasks()
     setTimeout(() => setIsRefreshing(false), 500)
   }
 
-  // 处理新任务创建
+  // Handle new task creation
   const handleTaskCreated = async (taskId: string) => {
-    // 获取新任务详情并添加到 store
+    // Fetch new task details and add to store
     try {
         const newTask = await taskApi.get(taskId)
         addTask(newTask)
     } catch (error) {
         console.error('Failed to fetch new task:', error)
-        loadTasks() // 降级方案：刷新整个列表
+        loadTasks() // Fallback: refresh full list
     }
   }
 
-  // 处理下载结果
+  // Handle result download
   const handleDownloadResult = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId)
     if (!task?.result) return
 
-    // 创建并下载 JSON 文件
+    // Create and download JSON file
     const dataStr = JSON.stringify(task.result, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     const url = URL.createObjectURL(dataBlob)
@@ -76,7 +76,7 @@ export const Dashboard: React.FC = () => {
     URL.revokeObjectURL(url)
   }
 
-  // 处理登出
+  // Handle logout
   const handleLogout = async () => {
     await logout()
     navigate('/login')
@@ -101,17 +101,17 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
+      {/* Top navigation bar */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">爬虫管理平台</h1>
+              <h1 className="text-xl font-bold text-gray-900">Crawler Management Platform</h1>
             </div>
             
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                欢迎, <span className="font-medium">{user?.username}</span>
+                Welcome, <span className="font-medium">{user?.username}</span>
               </span>
               
               {user?.is_admin && (
@@ -129,7 +129,7 @@ export const Dashboard: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
               >
                 <History size={18} />
-                历史记录
+                History
               </button>
 
               <button
@@ -137,7 +137,7 @@ export const Dashboard: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
               >
                 <FlaskConical size={18} />
-                Firecrawl 测试
+                Firecrawl Test
               </button>
 
               <button
@@ -145,7 +145,7 @@ export const Dashboard: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
               >
                 <Flame size={18} />
-                热搜 Rank1
+                Hot Rank1
               </button>
               
               <button
@@ -153,28 +153,28 @@ export const Dashboard: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
               >
                 <LogOut size={18} />
-                登出
+                Log Out
               </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* 主内容区 */}
+      {/* Main content area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 左侧：爬虫控制面板 */}
+          {/* Left: Crawler control panel */}
           <div className="lg:col-span-1">
             <CrawlerPanel onTaskCreated={handleTaskCreated} />
           </div>
 
-          {/* 右侧：任务列表 */}
+          {/* Right: Task list */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                任务列表
+                Task List
                 <span className="ml-3 text-sm font-normal text-gray-500">
-                  ({visibleTasks.length} 个任务)
+                  ({visibleTasks.length} tasks)
                 </span>
               </h2>
               
@@ -187,16 +187,16 @@ export const Dashboard: React.FC = () => {
                   size={18}
                   className={isRefreshing ? 'animate-spin' : ''}
                 />
-                刷新
+                Refresh
               </button>
             </div>
 
-            {/* 任务卡片网格 */}
+            {/* Task card grid */}
             {visibleTasks.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">暂无任务</p>
+                <p className="text-gray-500 text-lg">No tasks yet</p>
                 <p className="text-gray-400 text-sm mt-2">
-                  使用左侧的控制面板创建新任务
+                  Use the control panel on the left to create a new task
                 </p>
               </div>
             ) : (

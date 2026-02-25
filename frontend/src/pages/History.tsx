@@ -1,6 +1,6 @@
 /**
- * 任务历史页面
- * 显示所有历史任务和统计信息
+ * Task history page
+ * Displays all historical tasks and statistics
  */
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -22,7 +22,7 @@ export const HistoryPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  // 加载数据
+  // Load data
   useEffect(() => {
     loadTasks()
     loadStats()
@@ -63,10 +63,10 @@ export const HistoryPage: React.FC = () => {
 
   const selectedCount = useMemo(() => selectedIds.size, [selectedIds])
 
-  // 处理删除
+  // Handle delete
   const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('确定要删除这个任务吗？')) return
-    if (!confirm('该操作不可恢复，确认删除？')) return
+    if (!confirm('Are you sure you want to delete this task?')) return
+    if (!confirm('This action cannot be undone. Confirm delete?')) return
 
     try {
       await taskApi.delete(taskId)
@@ -76,7 +76,7 @@ export const HistoryPage: React.FC = () => {
         next.delete(taskId)
         return next
       })
-      loadStats() // 重新加载统计
+      loadStats() // Reload stats
     } catch (error) {
       console.error('Failed to delete task:', error)
     }
@@ -105,8 +105,8 @@ export const HistoryPage: React.FC = () => {
 
   const handleBatchDelete = async () => {
     if (selectedIds.size === 0) return
-    if (!confirm(`确定要删除选中的 ${selectedIds.size} 个任务吗？`)) return
-    if (!confirm('该操作不可恢复，确认删除？')) return
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} selected tasks?`)) return
+    if (!confirm('This action cannot be undone. Confirm delete?')) return
 
     const ids = Array.from(selectedIds)
     const results = await Promise.allSettled(ids.map((id) => taskApi.delete(id)))
@@ -128,12 +128,12 @@ export const HistoryPage: React.FC = () => {
     }
   }
 
-  // 处理下载结果
+  // Handle result download
   const handleDownloadResult = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId)
     if (!task?.result) return
 
-    // 创建并下载 JSON 文件
+    // Create and download JSON file
     const dataStr = JSON.stringify(task.result, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     const url = URL.createObjectURL(dataBlob)
@@ -147,16 +147,16 @@ export const HistoryPage: React.FC = () => {
     URL.revokeObjectURL(url)
   }
 
-  // 饼图数据
+  // Pie chart data
   const pieData = stats ? [
-    { name: '已完成', value: stats.tasks.completed, color: '#10b981' },
-    { name: '失败', value: stats.tasks.failed, color: '#ef4444' },
-    { name: '运行中', value: stats.tasks.running, color: '#3b82f6' },
+    { name: 'Completed', value: stats.tasks.completed, color: '#10b981' },
+    { name: 'Failed', value: stats.tasks.failed, color: '#ef4444' },
+    { name: 'Running', value: stats.tasks.running, color: '#3b82f6' },
   ].filter(d => d.value > 0) : []
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航 */}
+      {/* Top navigation */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
@@ -165,20 +165,20 @@ export const HistoryPage: React.FC = () => {
               className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
             >
               <ArrowLeft size={20} />
-              返回控制台
+              Back to Dashboard
             </button>
           </div>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 统计卡片 */}
+        {/* Stats cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">总任务数</p>
+                  <p className="text-sm text-gray-600">Total Tasks</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {stats.tasks.total}
                   </p>
@@ -190,7 +190,7 @@ export const HistoryPage: React.FC = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">已完成</p>
+                  <p className="text-sm text-gray-600">Completed</p>
                   <p className="text-2xl font-bold text-green-600 mt-1">
                     {stats.tasks.completed}
                   </p>
@@ -202,7 +202,7 @@ export const HistoryPage: React.FC = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">失败</p>
+                  <p className="text-sm text-gray-600">Failed</p>
                   <p className="text-2xl font-bold text-red-600 mt-1">
                     {stats.tasks.failed}
                   </p>
@@ -214,7 +214,7 @@ export const HistoryPage: React.FC = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">成功率</p>
+                  <p className="text-sm text-gray-600">Success Rate</p>
                   <p className="text-2xl font-bold text-blue-600 mt-1">
                     {(stats.tasks.success_rate * 100).toFixed(1)}%
                   </p>
@@ -227,10 +227,10 @@ export const HistoryPage: React.FC = () => {
           </div>
         )}
 
-        {/* 图表区域 */}
+        {/* Chart area */}
         {stats && pieData.length > 0 && (
           <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">任务状态分布</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Task Status Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -254,7 +254,7 @@ export const HistoryPage: React.FC = () => {
           </div>
         )}
 
-        {/* 过滤器 */}
+        {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-4">
             <Filter size={20} className="text-gray-400" />
@@ -262,45 +262,45 @@ export const HistoryPage: React.FC = () => {
             <div className="flex-1 grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  状态
+                  Status
                 </label>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value as any)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="all">全部</option>
-                  <option value="pending">等待中</option>
-                  <option value="running">运行中</option>
-                  <option value="completed">已完成</option>
-                  <option value="failed">失败</option>
+                  <option value="all">All</option>
+                  <option value="pending">Pending</option>
+                  <option value="running">Running</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  爬虫类型
+                  Crawler Type
                 </label>
                 <select
                   value={filterCrawler}
                   onChange={(e) => setFilterCrawler(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="all">全部</option>
+                  <option value="all">All</option>
                   <option value="yahoo">Yahoo Finance</option>
-                  <option value="movies">豆瓣电影</option>
-                  <option value="jobs">招聘信息</option>
+                  <option value="movies">Douban Movies</option>
+                  <option value="jobs">Job Listings</option>
                 </select>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 任务列表 */}
+        {/* Task list */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900">
-              任务历史 ({total} 个)
+              Task History ({total})
             </h2>
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2 text-sm text-gray-600">
@@ -311,14 +311,14 @@ export const HistoryPage: React.FC = () => {
                   disabled={tasks.length === 0}
                   className="h-4 w-4"
                 />
-                全选当前页
+                Select All
               </label>
               <button
                 onClick={handleBatchDelete}
                 disabled={selectedCount === 0}
                 className="px-3 py-2 text-sm bg-red-50 text-red-600 rounded-lg disabled:opacity-50 hover:bg-red-100 transition"
               >
-                批量删除 ({selectedCount})
+                Batch Delete ({selectedCount})
               </button>
             </div>
           </div>
@@ -326,11 +326,11 @@ export const HistoryPage: React.FC = () => {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="text-gray-500 mt-4">加载中...</p>
+              <p className="text-gray-500 mt-4">Loading...</p>
             </div>
           ) : tasks.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg shadow">
-              <p className="text-gray-500">暂无符合条件的任务</p>
+              <p className="text-gray-500">No matching tasks found</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -354,7 +354,7 @@ export const HistoryPage: React.FC = () => {
             </div>
           )}
 
-          {/* 分页 */}
+          {/* Pagination */}
           {total > 20 && (
             <div className="flex justify-center gap-2 mt-6">
               <button
@@ -362,17 +362,17 @@ export const HistoryPage: React.FC = () => {
                 disabled={page === 1}
                 className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50"
               >
-                上一页
+                Previous
               </button>
               <span className="px-4 py-2">
-                第 {page} 页 / 共 {Math.ceil(total / 20)} 页
+                Page {page} of {Math.ceil(total / 20)}
               </span>
               <button
                 onClick={() => setPage(p => p + 1)}
                 disabled={page >= Math.ceil(total / 20)}
                 className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50"
               >
-                下一页
+                Next
               </button>
             </div>
           )}

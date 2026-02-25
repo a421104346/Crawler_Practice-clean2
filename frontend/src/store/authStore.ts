@@ -1,6 +1,6 @@
 /**
- * 认证状态管理
- * 使用 Zustand 进行轻量级状态管理
+ * Auth state management
+ * Lightweight state management with Zustand
  */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -20,14 +20,14 @@ const isTokenExpired = (token: string): boolean => {
 }
 
 interface AuthState {
-  // 状态
+  // State
   user: User | null
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
 
-  // 操作
+  // Actions
   login: (username: string, password: string) => Promise<void>
   register: (username: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
@@ -38,21 +38,21 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      // 初始状态
+      // Initial state
       user: null,
       token: localStorage.getItem('access_token'),
       isAuthenticated: !!localStorage.getItem('access_token'),
       isLoading: false,
       error: null,
 
-      // 登录
+      // Login
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
           // Send request with username/password JSON
           const response = await authApi.login(username, password)
           
-          // 保存 token
+          // Save token
           localStorage.setItem('access_token', response.access_token)
           
           set({
@@ -61,11 +61,11 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           })
 
-          // 获取用户信息
+          // Fetch user info
           await get().fetchUser()
         } catch (error: any) {
           console.error("Login failed:", error);
-          const message = error.response?.data?.detail || '登录失败'
+          const message = error.response?.data?.detail || 'Login failed'
           set({
             error: message,
             isLoading: false,
@@ -75,16 +75,16 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 注册
+      // Register
       register: async (username: string, email: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
           await authApi.register(username, email, password)
           
-          // 注册成功后自动登录
+          // Auto-login after successful registration
           await get().login(username, password)
         } catch (error: any) {
-          const message = error.response?.data?.detail || '注册失败'
+          const message = error.response?.data?.detail || 'Registration failed'
           set({
             error: message,
             isLoading: false,
@@ -93,7 +93,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 登出
+      // Logout
       logout: async () => {
         try {
           if (get().token) {
@@ -112,7 +112,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 获取用户信息
+      // Fetch user info
       fetchUser: async () => {
         const token = get().token
         if (!token) return
@@ -145,7 +145,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 清除错误
+      // Clear error
       clearError: () => set({ error: null }),
     }),
     {
