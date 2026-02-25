@@ -1,5 +1,5 @@
 """
-认证相关的 API 路由
+Authentication-related API routes
 """
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -22,7 +22,7 @@ optional_bearer = HTTPBearer(auto_error=False)
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     """
-    创建 JWT access token
+    Create JWT access token
     """
     to_encode = data.copy()
     
@@ -48,9 +48,9 @@ async def register(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    注册新用户
+    Register new user
     """
-    # 检查用户名是否已存在
+    # Check if username already exists
     existing_user = await user_crud.get_by_username(db, user_in.username)
     if existing_user:
         raise HTTPException(
@@ -58,7 +58,7 @@ async def register(
             detail="Username already registered"
         )
         
-    # 检查邮箱是否已存在
+    # Check if email already exists
     if user_in.email:
         existing_email = await user_crud.get_by_email(db, user_in.email)
         if existing_email:
@@ -67,12 +67,12 @@ async def register(
                 detail="Email already registered"
             )
     
-    # 创建新用户
+    # Create new user
     user = await user_crud.create(db, user_in)
     
     logger.info(f"New user registered: {user.username}")
     
-    # 手动处理 created_at，确保它是字符串
+    # Manually handle created_at, ensure it's a string
     created_at_str = user.created_at.isoformat() if user.created_at else None
     
     return UserResponse(
@@ -91,9 +91,9 @@ async def login(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    用户登录
+    User login
     """
-    # 验证用户
+    # Authenticate user
     user = await user_crud.authenticate(db, user_login.username, user_login.password)
     
     if not user:
@@ -109,7 +109,7 @@ async def login(
             detail="Inactive user"
         )
     
-    # 创建 access token
+    # Create access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username, "user_id": user.id},
@@ -131,7 +131,7 @@ async def get_current_user_info(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    获取当前登录用户的信息
+    Get current logged-in user info
     """
     user = await user_crud.get(db, current_user.user_id)
     
@@ -154,7 +154,7 @@ async def get_current_user_info(
 @router.post("/logout")
 async def logout(credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer)):
     """
-    用户登出
+    User logout
     """
     username = "anonymous"
     if credentials:

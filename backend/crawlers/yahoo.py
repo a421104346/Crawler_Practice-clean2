@@ -3,30 +3,30 @@ import logging
 
 class YahooCrawler(BaseCrawler):
     def __init__(self):
-        # 初始化父类，但告诉它不要乱用随机 UA (use_fake_ua=False)
-        # Yahoo 对 UA 很敏感，我们需要一个稳定的 PC UA
+        # Initialize parent class, but tell it not to use random UA (use_fake_ua=False)
+        # Yahoo is sensitive to UA, we need a stable PC UA
         super().__init__(use_fake_ua=False, base_delay=2.0)
         
-        # 再次确保 Header 是完美的 Chrome PC 版
+        # Ensure headers match a perfect Chrome PC version
         self.client.headers.update({
              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         })
         
         self.crumb = None
-        # 初始化逻辑移到首次请求时，因为需要异步调用
+        # Initialization logic moved to first request since it requires async calls
 
     async def _initialize_session(self):
-        """专门处理 Yahoo 的初始化逻辑：访问主页 -> 拿 Crumb"""
+        """Yahoo-specific initialization: visit homepage -> get Crumb"""
         logging.info("Initializing Yahoo session...")
         
-        # 1. 访问主页拿 Cookie
-        # 这一步是为了让 session 内部的 cookie jar 吃到 cookie
+        # 1. Visit homepage to get Cookie
+        # This step allows the session's internal cookie jar to receive cookies
         await self.get("https://finance.yahoo.com")
         
-        # 2. 拿 Crumb
+        # 2. Get Crumb
         try:
             crumb_url = 'https://query1.finance.yahoo.com/v1/test/getcrumb'
-            # 模拟 Referer 是很重要的伪装
+            # Simulating Referer is an important disguise
             headers = {'Referer': 'https://finance.yahoo.com'}
             resp = await self.get(crumb_url, headers=headers)
             
@@ -41,8 +41,8 @@ class YahooCrawler(BaseCrawler):
 
     async def get_quote(self, symbol):
         """
-        获取股票价格的业务接口
-        用户只需要调用这个，不需要关心底层逻辑
+        Business interface for fetching stock prices
+        Users only need to call this without worrying about underlying logic
         """
         if not self.crumb:
             await self._initialize_session()
@@ -51,10 +51,10 @@ class YahooCrawler(BaseCrawler):
             logging.error("Cannot fetch quote: Crumb is missing")
             return None
 
-        # 构造带有 Crumb 的 API URL
+        # Construct API URL with Crumb
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?symbol={symbol}&crumb={self.crumb}"
         
-        # 复用父类的 get 方法（带重试和延时）
+        # Reuse parent's get method (with retry and delay)
         resp = await self.get(url)
         
         if resp and resp.status_code == 200:

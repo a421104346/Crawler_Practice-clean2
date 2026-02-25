@@ -1,6 +1,6 @@
 """
-结构化日志配置
-支持 JSON 格式日志输出，便于日志聚合和分析
+Structured logging configuration
+Supports JSON log output for log aggregation and analysis
 """
 import logging
 import sys
@@ -11,17 +11,17 @@ from backend.config import settings
 
 
 class JSONFormatter(logging.Formatter):
-    """JSON 格式的日志输出器"""
+    """JSON format log formatter"""
     
     def format(self, record: logging.LogRecord) -> str:
         """
-        格式化日志记录为 JSON
+        Format log record as JSON
         
         Args:
-            record: 日志记录
+            record: Log record
         
         Returns:
-            JSON 格式的日志字符串
+            JSON formatted log string
         """
         log_data = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -33,7 +33,7 @@ class JSONFormatter(logging.Formatter):
             "line": record.lineno,
         }
         
-        # 添加额外字段
+        # Add extra fields
         if hasattr(record, "user_id"):
             log_data["user_id"] = record.user_id
         
@@ -43,7 +43,7 @@ class JSONFormatter(logging.Formatter):
         if hasattr(record, "request_id"):
             log_data["request_id"] = record.request_id
         
-        # 添加异常信息
+        # Add exception info
         if record.exc_info:
             log_data["exception"] = self.formatException(record.exc_info)
         
@@ -52,28 +52,28 @@ class JSONFormatter(logging.Formatter):
 
 def setup_logging():
     """
-    配置应用日志系统
+    Configure application logging system
     
-    - 开发环境：彩色控制台输出
-    - 生产环境：JSON 格式输出到文件和控制台
+    - Development: colored console output
+    - Production: JSON format output to file and console
     """
-    # 创建日志目录
+    # Create log directory
     log_dir = Path(settings.LOG_DIR)
     log_dir.mkdir(exist_ok=True)
     
-    # 根日志器
+    # Root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(getattr(logging, settings.LOG_LEVEL))
     
-    # 清除现有处理器
+    # Clear existing handlers
     root_logger.handlers.clear()
     
     if settings.DEBUG:
-        # 开发环境：控制台输出（带颜色）
+        # Development: console output (with colors)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.DEBUG)
         
-        # 简单格式
+        # Simple format
         formatter = logging.Formatter(
             '[%(asctime)s] %(levelname)-8s [%(name)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
@@ -81,7 +81,7 @@ def setup_logging():
         console_handler.setFormatter(formatter)
         root_logger.addHandler(console_handler)
 
-        # 同时写入文件，便于排查问题
+        # Also write to file for debugging
         file_handler = logging.handlers.TimedRotatingFileHandler(
             log_dir / "app.log",
             when="midnight",
@@ -107,15 +107,15 @@ def setup_logging():
         root_logger.addHandler(error_handler)
     
     else:
-        # 生产环境：JSON 格式
+        # Production: JSON format
         
-        # 1. 控制台处理器（JSON）
+        # 1. Console handler (JSON)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(JSONFormatter())
         root_logger.addHandler(console_handler)
         
-        # 2. 文件处理器 - 普通日志
+        # 2. File handler - general logs
         file_handler = logging.handlers.TimedRotatingFileHandler(
             log_dir / "app.log",
             when="midnight",
@@ -128,7 +128,7 @@ def setup_logging():
         file_handler.setFormatter(JSONFormatter())
         root_logger.addHandler(file_handler)
         
-        # 3. 错误日志单独文件
+        # 3. Separate file for error logs
         error_handler = logging.handlers.TimedRotatingFileHandler(
             log_dir / "error.log",
             when="midnight",
@@ -141,7 +141,7 @@ def setup_logging():
         error_handler.setFormatter(JSONFormatter())
         root_logger.addHandler(error_handler)
     
-    # 第三方库日志级别
+    # Third-party library log levels
     logging.getLogger("uvicorn").setLevel(logging.INFO)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     logging.getLogger("celery").setLevel(logging.INFO)
@@ -150,5 +150,5 @@ def setup_logging():
     logging.info(f"Log files: {log_dir / 'app.log'} | {log_dir / 'error.log'}")
 
 
-# 添加 RotatingFileHandler
+# Add RotatingFileHandler
 import logging.handlers

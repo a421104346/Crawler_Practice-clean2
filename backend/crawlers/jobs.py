@@ -1,5 +1,5 @@
 """
-Remotive 招聘 API 爬虫
+Remotive Jobs API crawler
 """
 from backend.core.base_crawler import BaseCrawler
 import logging
@@ -10,15 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class JobsCrawler(BaseCrawler):
-    """Remotive 远程工作招聘爬虫"""
+    """Remotive remote job crawler"""
     
     def __init__(self, category: Optional[str] = None, search: Optional[str] = None):
         """
-        初始化招聘爬虫
+        Initialize jobs crawler
         
         Args:
-            category: 岗位分类 (software-dev, data, devops等)
-            search: 搜索关键词 (python, data analyst等)
+            category: Job category (software-dev, data, devops, etc.)
+            search: Search keyword (python, data analyst, etc.)
         """
         super().__init__(use_fake_ua=True, base_delay=1.0)
         self.api_url = "https://remotive.com/api/remote-jobs"
@@ -27,29 +27,29 @@ class JobsCrawler(BaseCrawler):
     
     def _normalize_city(self, location: str) -> str:
         """
-        规范化城市名称
+        Normalize city name
         
         Args:
-            location: 原始地址字符串
+            location: Raw location string
         
         Returns:
-            规范化后的城市名
+            Normalized city name
         """
         loc = (location or "").strip()
         if not loc:
             return "Unknown"
         
-        # 常见格式： "City, Country" / "Country" / "Worldwide"
+        # Common formats: "City, Country" / "Country" / "Worldwide"
         if "," in loc:
             return loc.split(",", 1)[0].strip() or loc.strip()
         return loc
     
     async def run(self, progress_callback=None) -> dict:
         """
-        执行爬虫流程
+        Execute crawler workflow
         
         Returns:
-            爬取结果：{"jobs": [...], "total": N}
+            Crawl results: {"jobs": [...], "total": N}
         """
         if progress_callback:
             self.progress_callback = progress_callback
@@ -58,34 +58,34 @@ class JobsCrawler(BaseCrawler):
 
         if self.progress_callback:
             if inspect.iscoroutinefunction(self.progress_callback):
-                await self.progress_callback(10, "正在请求招聘数据...")
+                await self.progress_callback(10, "Fetching job data...")
             else:
-                self.progress_callback(10, "正在请求招聘数据...")
+                self.progress_callback(10, "Fetching job data...")
         
-        # 构建请求参数
+        # Build request parameters
         params = {}
         if self.category:
             params["category"] = self.category
         if self.search:
             params["search"] = self.search
         
-        # 发起请求
+        # Send request
         response = await self.get(self.api_url, params=params, timeout=30)
         
         if not response or response.status_code != 200:
             logger.error(f"Failed to fetch jobs: status={response.status_code if response else 'None'}")
             if self.progress_callback:
                 if inspect.iscoroutinefunction(self.progress_callback):
-                    await self.progress_callback(90, "请求失败")
+                    await self.progress_callback(90, "Request failed")
                 else:
-                    self.progress_callback(90, "请求失败")
+                    self.progress_callback(90, "Request failed")
             return {"jobs": [], "total": 0, "error": "Failed to fetch jobs"}
         
-        # 解析 JSON 响应
+        # Parse JSON response
         data = response.json()
         jobs = data.get("jobs", [])
         
-        # 处理和规范化数据
+        # Process and normalize data
         processed_jobs = []
         for job in jobs:
             try:
@@ -103,7 +103,7 @@ class JobsCrawler(BaseCrawler):
                     "category": job.get("category"),
                     "job_type": job.get("job_type"),
                     "url": job.get("url"),
-                    "description": job.get("description", "")[:200]  # 截取前200字符
+                    "description": job.get("description", "")[:200]  # Truncate to first 200 chars
                 }
                 
                 processed_jobs.append(processed_job)
@@ -122,7 +122,7 @@ class JobsCrawler(BaseCrawler):
         logger.info(f"Jobs crawler completed: {len(processed_jobs)} jobs")
         if self.progress_callback:
             if inspect.iscoroutinefunction(self.progress_callback):
-                await self.progress_callback(100, "完成！")
+                await self.progress_callback(100, "Done!")
             else:
-                self.progress_callback(100, "完成！")
+                self.progress_callback(100, "Done!")
         return result

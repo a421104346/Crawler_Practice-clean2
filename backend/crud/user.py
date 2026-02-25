@@ -1,5 +1,5 @@
 """
-用户 CRUD 操作
+User CRUD operations
 """
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,18 +9,18 @@ from passlib.context import CryptContext
 from typing import Optional
 from datetime import datetime
 
-# 密码加密上下文
+# Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserCRUD:
-    """用户的 CRUD 操作"""
+    """User CRUD operations"""
     
     async def create(
         self, 
         db: AsyncSession, 
         user_in: UserRegister
     ) -> UserModel:
-        """创建新用户"""
+        """Create new user"""
         hashed_password = pwd_context.hash(user_in.password)
         
         normalized_email = user_in.email or None
@@ -41,7 +41,7 @@ class UserCRUD:
         db: AsyncSession, 
         username: str
     ) -> Optional[UserModel]:
-        """通过用户名获取用户"""
+        """Get user by username"""
         result = await db.execute(
             select(UserModel).where(UserModel.username == username)
         )
@@ -52,7 +52,7 @@ class UserCRUD:
         db: AsyncSession, 
         email: str
     ) -> Optional[UserModel]:
-        """通过邮箱获取用户"""
+        """Get user by email"""
         if not email:
             return None
         result = await db.execute(
@@ -65,7 +65,7 @@ class UserCRUD:
         db: AsyncSession, 
         user_id: str
     ) -> Optional[UserModel]:
-        """通过ID获取用户"""
+        """Get user by ID"""
         return await db.get(UserModel, user_id)
         
     async def authenticate(
@@ -74,14 +74,14 @@ class UserCRUD:
         username: str,
         password: str
     ) -> Optional[UserModel]:
-        """验证用户登录"""
+        """Verify user login"""
         user = await self.get_by_username(db, username)
         if not user:
             return None
         if not pwd_context.verify(password, user.hashed_password):
             return None
             
-        # 更新最后登录时间
+        # Update last login time
         user.last_login = datetime.utcnow()
         await db.commit()
         
@@ -93,7 +93,7 @@ class UserCRUD:
         skip: int = 0,
         limit: int = 100
     ) -> list[UserModel]:
-        """获取所有用户"""
+        """Get all users"""
         result = await db.execute(
             select(UserModel).offset(skip).limit(limit)
         )
@@ -104,12 +104,12 @@ class UserCRUD:
         db: AsyncSession,
         user_id: str
     ) -> Optional[UserModel]:
-        """删除用户"""
+        """Delete user"""
         user = await self.get(db, user_id)
         if user:
             await db.delete(user)
             await db.commit()
         return user
 
-# 创建全局实例
+# Create global instance
 user_crud = UserCRUD()

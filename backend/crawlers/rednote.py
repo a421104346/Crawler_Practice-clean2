@@ -1,5 +1,5 @@
 """
-小红书爬虫 (Playwright)
+Xiaohongshu crawler (Playwright)
 """
 from backend.core.base_crawler import BaseCrawler
 import logging
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class RednoteCrawler(BaseCrawler):
-    """小红书首页推荐爬虫"""
+    """Xiaohongshu homepage recommendation crawler"""
     
     def __init__(self):
         super().__init__(use_fake_ua=True)
@@ -20,7 +20,7 @@ class RednoteCrawler(BaseCrawler):
         
     async def run(self, progress_callback=None) -> dict:
         """
-        执行爬取，包含重试机制
+        Execute scraping with retry mechanism
         """
         running_loop = asyncio.get_running_loop()
         if sys.platform == "win32":
@@ -29,7 +29,7 @@ class RednoteCrawler(BaseCrawler):
 
     def _run_in_new_loop(self, progress_callback, main_loop: asyncio.AbstractEventLoop) -> dict:
         """
-        在新事件循环中执行（Windows 兼容性）
+        Execute in new event loop (Windows compatibility)
         """
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         loop = asyncio.new_event_loop()
@@ -52,7 +52,7 @@ class RednoteCrawler(BaseCrawler):
 
     async def _run_internal(self, progress_callback=None) -> dict:
         """
-        实际爬取逻辑
+        Actual scraping logic
         """
         logger.info("Starting Rednote crawler...")
         
@@ -62,10 +62,10 @@ class RednoteCrawler(BaseCrawler):
         for attempt in range(max_retries):
             try:
                 if progress_callback:
-                    await progress_callback(5, f"启动浏览器 (尝试 {attempt + 1}/{max_retries})...")
+                    await progress_callback(5, f"Launching browser (attempt {attempt + 1}/{max_retries})...")
                 
                 async with async_playwright() as p:
-                    # 启动浏览器
+                    # Launch browser
                     browser = await p.chromium.launch(headless=True)
                     context = await browser.new_context(
                         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -75,40 +75,40 @@ class RednoteCrawler(BaseCrawler):
                     
                     try:
                         if progress_callback:
-                            await progress_callback(10, "正在访问小红书...")
+                            await progress_callback(10, "Accessing Xiaohongshu...")
                         
                         await page.goto(self.url, timeout=30000)
                         
-                        # 等待加载
+                        # Wait for loading
                         if progress_callback:
-                            await progress_callback(20, "等待页面加载...")
+                            await progress_callback(20, "Waiting for page to load...")
                         
                         try:
-                            # 等待 feed 容器或 footer
+                            # Wait for feed container or footer
                             await page.wait_for_selector('.footer', timeout=15000)
                         except:
                             logger.warning("Timeout waiting for content, trying to scroll anyway")
                         
-                        # 滚动抓取
+                        # Scroll and scrape
                         unique_items = {}
                         scroll_steps = 10
                         
                         for step in range(scroll_steps):
                             if progress_callback:
                                 progress = 20 + int((step / scroll_steps) * 60)
-                                await progress_callback(progress, f"正在滚动并抓取 (第 {step+1} 次)...")
+                                await progress_callback(progress, f"Scrolling and scraping (step {step+1})...")
                             
                             footers = await page.locator(".footer").all()
                             
                             for footer in footers:
                                 try:
                                     title_el = footer.locator(".title").first
-                                    title = "无标题"
+                                    title = "No title"
                                     if await title_el.count() > 0:
                                         title = await title_el.inner_text()
                                         
                                     author_el = footer.locator(".author .name").first
-                                    author = "未知作者"
+                                    author = "Unknown author"
                                     if await author_el.count() > 0:
                                         author = await author_el.inner_text()
                                         
@@ -142,14 +142,14 @@ class RednoteCrawler(BaseCrawler):
                 if attempt < max_retries - 1:
                     wait_time = (attempt + 1) * 2
                     if progress_callback:
-                        await progress_callback(10, f"发生错误，{wait_time}秒后重试...")
+                        await progress_callback(10, f"Error occurred, retrying in {wait_time}s...")
                     await asyncio.sleep(wait_time)
                 else:
                     if progress_callback:
-                        await progress_callback(90, f"最终失败: {str(e)}")
+                        await progress_callback(90, f"Final failure: {str(e)}")
                 
         if progress_callback:
-            await progress_callback(100, "完成！")
+            await progress_callback(100, "Done!")
             
         return {
             "total": len(items),

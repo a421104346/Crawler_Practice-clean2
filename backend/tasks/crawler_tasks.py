@@ -1,5 +1,5 @@
 """
-爬虫相关的 Celery 任务
+Crawler-related Celery tasks
 """
 from backend.celery_app import celery_app
 from backend.database import AsyncSessionLocal
@@ -17,20 +17,20 @@ logger = logging.getLogger(__name__)
 @celery_app.task(bind=True, name="crawler_tasks.run_crawler")
 def run_crawler_task(self, task_id: str, crawler_type: str, params: dict):
     """
-    Celery 任务：执行爬虫
+    Celery task: execute crawler
     
     Args:
-        self: Celery task 实例
-        task_id: 任务 ID
-        crawler_type: 爬虫类型
-        params: 爬虫参数
+        self: Celery task instance
+        task_id: Task ID
+        crawler_type: Crawler type
+        params: Crawler parameters
     
     Returns:
-        任务结果
+        Task result
     """
     logger.info(f"Celery task started: {task_id} - {crawler_type}")
     
-    # 在新的事件循环中运行异步代码
+    # Run async code in a new event loop
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     
@@ -50,17 +50,17 @@ async def _execute_crawler_async(
     celery_task
 ):
     """
-    异步执行爬虫（内部函数）
+    Execute crawler asynchronously (internal function)
     
     Args:
-        task_id: 任务 ID
-        crawler_type: 爬虫类型
-        params: 爬虫参数
-        celery_task: Celery 任务实例
+        task_id: Task ID
+        crawler_type: Crawler type
+        params: Crawler parameters
+        celery_task: Celery task instance
     """
     async with AsyncSessionLocal() as db:
         try:
-            # 1. 更新任务状态为 running
+            # 1. Update task status to running
             await task_crud.update(
                 db,
                 task_id,
@@ -71,7 +71,7 @@ async def _execute_crawler_async(
                 )
             )
             
-            # 2. 广播任务开始
+            # 2. Broadcast task started
             await manager.broadcast_to_task(task_id, {
                 "task_id": task_id,
                 "status": "running",
@@ -79,23 +79,23 @@ async def _execute_crawler_async(
                 "message": "Task started in Celery worker"
             })
             
-            # 3. 定义进度回调
+            # 3. Define progress callback
             async def progress_callback(progress: int, message: str):
-                """更新进度到数据库和 WebSocket"""
-                # 更新 Celery 任务状态
+                """Update progress to database and WebSocket"""
+                # Update Celery task status
                 celery_task.update_state(
                     state="PROGRESS",
                     meta={"progress": progress, "message": message}
                 )
                 
-                # 更新数据库
+                # Update database
                 await task_crud.update(
                     db,
                     task_id,
                     TaskUpdate(progress=progress)
                 )
                 
-                # 广播到 WebSocket
+                # Broadcast to WebSocket
                 await manager.broadcast_to_task(task_id, {
                     "task_id": task_id,
                     "status": "running",
@@ -103,7 +103,7 @@ async def _execute_crawler_async(
                     "message": message
                 })
             
-            # 4. 执行爬虫
+            # 4. Execute crawler
             logger.info(f"Executing crawler: {crawler_type}")
             result = await crawler_service.run_crawler(
                 crawler_type,
@@ -111,7 +111,7 @@ async def _execute_crawler_async(
                 progress_callback=progress_callback
             )
             
-            # 5. 更新任务状态为 completed
+            # 5. Update task status to completed
             await task_crud.update(
                 db,
                 task_id,
@@ -123,7 +123,7 @@ async def _execute_crawler_async(
                 )
             )
             
-            # 6. 广播完成消息
+            # 6. Broadcast completion message
             await manager.broadcast_to_task(task_id, {
                 "task_id": task_id,
                 "status": "completed",
@@ -138,7 +138,7 @@ async def _execute_crawler_async(
         except Exception as e:
             logger.error(f"Task {task_id} failed: {e}", exc_info=True)
             
-            # 更新任务状态为 failed
+            # Update task status to failed
             await task_crud.update(
                 db,
                 task_id,
@@ -149,7 +149,7 @@ async def _execute_crawler_async(
                 )
             )
             
-            # 广播失败消息
+            # Broadcast failure message
             await manager.broadcast_to_task(task_id, {
                 "task_id": task_id,
                 "status": "failed",
@@ -158,27 +158,27 @@ async def _execute_crawler_async(
                 "error": str(e)
             })
             
-            # 重新抛出异常让 Celery 处理
+            # Re-raise exception for Celery to handle
             raise
 
 
 @celery_app.task(name="crawler_tasks.cleanup_old_tasks")
 def cleanup_old_tasks(days: int = 30):
     """
-    清理旧任务（定期任务）
+    Clean up old tasks (periodic task)
     
     Args:
-        days: 保留多少天内的任务
+        days: Number of days to retain tasks
     
     Returns:
-        清理的任务数量
+        Number of cleaned tasks
     """
     logger.info(f"Starting cleanup of tasks older than {days} days")
     
-    # TODO: 实现清理逻辑
-    # 1. 删除超过 N 天的 completed 任务
-    # 2. 删除超过 N 天的 failed 任务
-    # 3. 保留 running 和 pending 任务
+    # TODO: Implement cleanup logic
+    # 1. Delete completed tasks older than N days
+    # 2. Delete failed tasks older than N days
+    # 3. Keep running and pending tasks
     
     return {"cleaned": 0}
 
@@ -186,10 +186,10 @@ def cleanup_old_tasks(days: int = 30):
 @celery_app.task(name="crawler_tasks.health_check")
 def health_check():
     """
-    健康检查任务
+    Health check task
     
     Returns:
-        健康状态
+        Health status
     """
     return {
         "status": "healthy",

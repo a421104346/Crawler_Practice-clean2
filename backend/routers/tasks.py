@@ -1,5 +1,5 @@
 """
-任务管理的API路由
+Task management API routes
 """
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,15 +25,15 @@ async def get_task(
     current_user: TokenData = Depends(get_current_user)
 ):
     """
-    获取特定任务的详细信息
+    Get specific task details
     
     Args:
-        task_id: 任务ID
-        db: 数据库会话
-        current_user: 当前登录用户
+        task_id: Task ID
+        db: Database session
+        current_user: Current logged-in user
     
     Returns:
-        TaskResponse: 任务详情
+        TaskResponse: Task details
     """
     try:
         task = await task_crud.get(db, task_id)
@@ -43,14 +43,14 @@ async def get_task(
                 detail=f"Task '{task_id}' not found"
             )
         
-        # 权限检查：只能访问自己的任务（管理员除外）
+        # Permission check: can only access own tasks (except admin)
         if task.user_id != current_user.user_id and current_user.username != "admin":
             raise HTTPException(
                 status_code=403,
                 detail="Not authorized to access this task"
             )
         
-        # 将 JSON 字符串字段转换回对象
+        # Convert JSON string fields back to objects
         task_dict = {
             "id": task.id,
             "crawler_type": task.crawler_type,
@@ -77,45 +77,45 @@ async def get_task(
 
 @router.get("", response_model=TaskListResponse)
 async def list_tasks(
-    page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
-    status: Optional[str] = Query(None, description="任务状态过滤"),
-    crawler_type: Optional[str] = Query(None, description="爬虫类型过滤"),
-    target_user_id: Optional[str] = Query(None, alias="user_id", description="用户ID过滤（仅管理员可用）"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page"),
+    status: Optional[str] = Query(None, description="Status filter"),
+    crawler_type: Optional[str] = Query(None, description="Crawler type filter"),
+    target_user_id: Optional[str] = Query(None, alias="user_id", description="User ID filter (admin only)"),
     db: AsyncSession = Depends(get_db),
     current_user: TokenData = Depends(get_current_user)
 ):
     """
-    获取任务列表（支持分页和过滤）
+    Get task list (supports pagination and filtering)
     
     Args:
-        page: 页码（从1开始）
-        page_size: 每页数量
-        status: 状态过滤
-        crawler_type: 爬虫类型过滤
-        target_user_id: 目标用户ID（仅管理员可用）
-        db: 数据库会话
-        current_user: 当前登录用户
+        page: Page number (starting from 1)
+        page_size: Items per page
+        status: Status filter
+        crawler_type: Crawler type filter
+        target_user_id: Target user ID (admin only)
+        db: Database session
+        current_user: Current logged-in user
     
     Returns:
-        TaskListResponse: 任务列表和总数
+        TaskListResponse: Task list and total count
     """
     try:
-        # 确定要查询的用户ID
-        # 默认只能查看自己的任务
+        # Determine user ID to query
+        # Default: can only view own tasks
         filter_user_id = current_user.user_id
         
-        # 管理员可以查看所有任务，或指定用户的任务
+        # Admin can view all tasks or specific user's tasks
         if current_user.username == "admin":
             if target_user_id:
                 filter_user_id = target_user_id
             else:
-                filter_user_id = None  # 查看所有
+                filter_user_id = None  # View all
         
-        # 计算偏移量
+        # Calculate offset
         skip = (page - 1) * page_size
         
-        # 获取任务列表
+        # Get task list
         tasks = await task_crud.get_multi(
             db,
             skip=skip,
@@ -125,7 +125,7 @@ async def list_tasks(
             user_id=filter_user_id
         )
         
-        # 获取总数
+        # Get total count
         total = await task_crud.count(
             db,
             status=status,
@@ -133,7 +133,7 @@ async def list_tasks(
             user_id=filter_user_id
         )
         
-        # 转换任务数据
+        # Transform task data
         task_responses = []
         for task in tasks:
             task_dict = {
@@ -171,15 +171,15 @@ async def update_task(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    更新任务（例如取消任务）
+    Update task (e.g., cancel task)
     
     Args:
-        task_id: 任务ID
-        task_update: 更新内容
-        db: 数据库会话
+        task_id: Task ID
+        task_update: Update content
+        db: Database session
     
     Returns:
-        TaskResponse: 更新后的任务
+        TaskResponse: Updated task
     """
     try:
         task = await task_crud.update(db, task_id, task_update)
@@ -189,7 +189,7 @@ async def update_task(
                 detail=f"Task '{task_id}' not found"
             )
         
-        # 转换数据
+        # Transform data
         task_dict = {
             "id": task.id,
             "crawler_type": task.crawler_type,
@@ -221,18 +221,18 @@ async def delete_task(
     current_user: TokenData = Depends(get_current_user)
 ):
     """
-    删除任务
+    Delete task
     
     Args:
-        task_id: 任务ID
-        db: 数据库会话
-        current_user: 当前登录用户
+        task_id: Task ID
+        db: Database session
+        current_user: Current logged-in user
     
     Returns:
-        删除确认消息
+        Deletion confirmation message
     """
     try:
-        # 先获取任务检查权限
+        # First get task to check permissions
         task = await task_crud.get(db, task_id)
         if not task:
             raise HTTPException(
@@ -240,7 +240,7 @@ async def delete_task(
                 detail=f"Task '{task_id}' not found"
             )
             
-        # 权限检查
+        # Permission check
         if task.user_id != current_user.user_id and current_user.username != "admin":
             raise HTTPException(
                 status_code=403,
@@ -249,7 +249,7 @@ async def delete_task(
             
         success = await task_crud.delete(db, task_id)
         if not success:
-            # 理论上上面已经检查过 task 存在，这里是个双重保险
+            # In theory task existence was already checked above; this is a safety net
              raise HTTPException(
                 status_code=404,
                 detail=f"Task '{task_id}' not found"

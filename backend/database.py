@@ -1,6 +1,6 @@
 """
-数据库配置：SQLAlchemy + AsyncSession
-支持 SQLite (开发) 和 PostgreSQL (生产)
+Database configuration: SQLAlchemy + AsyncSession
+Supports SQLite (development) and PostgreSQL (production)
 """
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
@@ -10,32 +10,32 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# 选择数据库 URL（优先使用 PostgreSQL）
+# Select database URL (prefer PostgreSQL)
 db_url = settings.POSTGRES_URL or settings.DATABASE_URL
 
-# 根据数据库类型配置引擎参数
+# Configure engine parameters based on database type
 engine_kwargs = {
     "echo": settings.DEBUG,
     "future": True,
     "pool_pre_ping": True,
 }
 
-# PostgreSQL 特殊配置
+# PostgreSQL-specific configuration
 if "postgresql" in db_url:
     engine_kwargs.update({
-        "pool_size": 10,  # 连接池大小
-        "max_overflow": 20,  # 最大溢出连接数
-        "pool_recycle": 3600,  # 1小时回收连接
-        "pool_timeout": 30,  # 连接超时
+        "pool_size": 10,  # Connection pool size
+        "max_overflow": 20,  # Max overflow connections
+        "pool_recycle": 3600,  # Recycle connections every hour
+        "pool_timeout": 30,  # Connection timeout
     })
     logger.info("Using PostgreSQL database")
 else:
     logger.info("Using SQLite database")
 
-# 创建异步引擎
+# Create async engine
 engine = create_async_engine(db_url, **engine_kwargs)
 
-# 创建异步会话工厂
+# Create async session factory
 AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
@@ -44,14 +44,14 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-# 创建基类
+# Create base class
 Base = declarative_base()
 
 
 async def get_db() -> AsyncSession:
     """
-    依赖注入：获取数据库会话
-    使用方法：
+    Dependency injection: get database session
+    Usage:
         @app.get("/items")
         async def read_items(db: AsyncSession = Depends(get_db)):
             ...
@@ -72,13 +72,13 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db():
-    """初始化数据库：创建所有表"""
+    """Initialize database: create all tables"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database initialized successfully")
 
 
 async def close_db():
-    """关闭数据库连接"""
+    """Close database connection"""
     await engine.dispose()
     logger.info("Database connection closed")

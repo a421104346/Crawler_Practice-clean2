@@ -1,5 +1,5 @@
 """
-Firecrawl 测试接口
+Firecrawl test API
 """
 import logging
 from fastapi import APIRouter, Depends, HTTPException
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/firecrawl", tags=["firecrawl"])
 @router.post("/scrape", response_model=FirecrawlScrapeResponse)
 async def scrape(request: FirecrawlScrapeRequest, current_user: TokenData = Depends(get_current_user)):
     """
-    使用 Firecrawl 抓取单个页面内容。
+    Scrape a single page using Firecrawl.
     """
     try:
         _ = current_user
@@ -44,7 +44,7 @@ async def scrape_weibo_hot_rank1(
     current_user: TokenData = Depends(get_current_user)
 ):
     """
-    抓取微博热搜 Rank1 话题前五页帖子内容。
+    Scrape the top 5 pages of posts from Weibo Hot Search Rank1 topic.
     """
     try:
         _ = current_user

@@ -1,6 +1,6 @@
 """
-FastAPI 主应用程序
-集成所有路由、中间件和启动事件
+FastAPI main application
+Integrates all routers, middleware, and startup events
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,11 +10,11 @@ import sys
 import os
 import asyncio
 
-# 在 Windows 上使用 ProactorEventLoop (解决 Playwright subprocess 问题)
+# Use ProactorEventLoop on Windows (fixes Playwright subprocess issues)
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
-# 将根目录添加到 sys.path，以便能导入 core 和 crawlers
+# Add root directory to sys.path for importing core and crawlers
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.config import settings
@@ -22,7 +22,7 @@ from backend.database import init_db, close_db
 from backend.routers import crawlers, tasks, websocket, auth, monitoring, admin, firecrawl
 from backend.logger import setup_logging
 
-# 配置日志系统
+# Configure logging system
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    应用生命周期管理
-    启动时初始化数据库，关闭时清理资源
+    Application lifecycle management
+    Initialize database on startup, clean up resources on shutdown
     """
-    # 启动事件
+    # Startup event
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info("Initializing database...")
     await init_db()
@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # 关闭事件
+    # Shutdown event
     logger.info("Shutting down application...")
     if recycler_task:
         recycler_task.cancel()
@@ -75,27 +75,27 @@ async def lifespan(app: FastAPI):
     logger.info("Application shutdown complete")
 
 
-# 创建 FastAPI 应用
+# Create FastAPI application
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="生产级爬虫管理系统 API",
+    description="Production-grade crawler management system API",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
 
-# 配置中间件
+# Configure middleware
 from backend.middleware import RequestLoggingMiddleware, PerformanceMonitoringMiddleware
 
-# 请求日志中间件
+# Request logging middleware
 app.add_middleware(RequestLoggingMiddleware)
 
-# 性能监控中间件
+# Performance monitoring middleware
 app.add_middleware(PerformanceMonitoringMiddleware)
 
-# CORS 中间件
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -104,7 +104,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 注册路由
+# Register routers
 app.include_router(auth.router)
 app.include_router(crawlers.router)
 app.include_router(tasks.router)
@@ -117,7 +117,7 @@ app.include_router(firecrawl.router)
 @app.get("/")
 async def root():
     """
-    健康检查和欢迎页面
+    Health check and welcome page
     """
     return {
         "message": f"Welcome to {settings.APP_NAME}",
@@ -131,7 +131,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     """
-    健康检查端点（用于容器编排、负载均衡器等）
+    Health check endpoint (for container orchestration, load balancers, etc.)
     """
     return {
         "status": "healthy",
@@ -142,14 +142,14 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     
-    # 开发模式启动
+    # Development mode startup
     logger.info("Starting development server...")
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,  # 开发模式下自动重载
-        # 排除日志文件，避免写日志触发热重载循环
+        reload=True,  # Auto-reload in development mode
+        # Exclude log files to avoid hot reload loops triggered by log writes
         reload_excludes=["logs/*", "logs/*.log", "data/*.db", "__pycache__/*"],
         log_level=settings.LOG_LEVEL.lower()
     )

@@ -1,5 +1,5 @@
 """
-监控和健康检查 API 路由
+Monitoring and health check API routes
 """
 from fastapi import APIRouter, Depends
 from typing import Dict, Any
@@ -23,10 +23,10 @@ router = APIRouter(prefix="/api/monitoring", tags=["monitoring"])
 @router.get("/health")
 async def health_check():
     """
-    基础健康检查（无需认证）
+    Basic health check (no authentication required)
     
     Returns:
-        健康状态
+        Health status
     """
     return {
         "status": "healthy",
@@ -38,18 +38,18 @@ async def health_check():
 @router.get("/health/detailed")
 async def detailed_health_check():
     """
-    详细健康检查
-    检查所有依赖服务的状态
+    Detailed health check
+    Checks status of all dependent services
     
     Returns:
-        详细健康状态
+        Detailed health status
     """
-    # 并发检查所有服务
+    # Concurrently check all services
     db_health = await check_database_health()
     redis_health = await check_redis_health()
     celery_health = await check_celery_health()
     
-    # 判断整体健康状态
+    # Determine overall health status
     all_healthy = all([
         db_health.get("status") == "healthy",
         redis_health.get("status") in ["healthy", "not_configured"],
@@ -74,13 +74,13 @@ async def get_metrics(
     current_user: TokenData = Depends(get_current_admin_user)
 ):
     """
-    获取系统指标（需要管理员权限）
+    Get system metrics (requires admin privileges)
     
     Args:
-        current_user: 当前用户（管理员）
+        current_user: Current user (admin)
     
     Returns:
-        系统和应用指标
+        System and application metrics
     """
     system_metrics = monitor.get_system_metrics()
     app_metrics = monitor.get_app_metrics()
@@ -95,16 +95,16 @@ async def get_metrics(
 @router.get("/stats")
 async def get_stats():
     """
-    获取简单统计信息（无需认证）
+    Get simple statistics (no authentication required)
     
     Returns:
-        统计信息
+        Statistics
     """
     from backend.database import AsyncSessionLocal
     from backend.crud.task import task_crud
     
     async with AsyncSessionLocal() as db:
-        # 获取任务统计
+        # Get task statistics
         total_tasks = await task_crud.count(db)
         completed_tasks = await task_crud.count(db, status="completed")
         failed_tasks = await task_crud.count(db, status="failed")

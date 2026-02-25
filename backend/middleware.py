@@ -1,5 +1,5 @@
 """
-自定义中间件
+Custom middleware
 """
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -12,26 +12,26 @@ logger = logging.getLogger(__name__)
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
-    请求日志中间件
-    记录每个请求的详细信息
+    Request logging middleware
+    Logs detailed information for each request
     """
     
     async def dispatch(self, request: Request, call_next):
         """
-        处理请求并记录日志
+        Process request and log details
         
         Args:
-            request: 请求对象
-            call_next: 下一个中间件/路由处理器
+            request: Request object
+            call_next: Next middleware/route handler
         
         Returns:
-            响应对象
+            Response object
         """
-        # 生成请求 ID
+        # Generate request ID
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
         
-        # 记录请求开始
+        # Log request start
         start_time = time.time()
         
         logger.info(
@@ -45,18 +45,18 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             }
         )
         
-        # 处理请求
+        # Process request
         try:
             response = await call_next(request)
             
-            # 计算处理时间
+            # Calculate processing time
             process_time = time.time() - start_time
             
-            # 添加自定义响应头
+            # Add custom response headers
             response.headers["X-Request-ID"] = request_id
             response.headers["X-Process-Time"] = f"{process_time:.4f}"
             
-            # 记录请求完成
+            # Log request completion
             logger.info(
                 "Request completed",
                 extra={
@@ -71,7 +71,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             return response
             
         except Exception as e:
-            # 记录异常
+            # Log exception
             process_time = time.time() - start_time
             
             logger.error(
@@ -91,22 +91,22 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
 class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
     """
-    性能监控中间件
-    监控慢请求
+    Performance monitoring middleware
+    Monitors slow requests
     """
     
-    SLOW_REQUEST_THRESHOLD = 1.0  # 1 秒
+    SLOW_REQUEST_THRESHOLD = 1.0  # 1 second
     
     async def dispatch(self, request: Request, call_next):
         """
-        监控请求性能
+        Monitor request performance
         
         Args:
-            request: 请求对象
-            call_next: 下一个处理器
+            request: Request object
+            call_next: Next handler
         
         Returns:
-            响应对象
+            Response object
         """
         start_time = time.time()
         
@@ -114,7 +114,7 @@ class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
         
         process_time = time.time() - start_time
         
-        # 记录慢请求
+        # Log slow requests
         if process_time > self.SLOW_REQUEST_THRESHOLD:
             logger.warning(
                 "Slow request detected",

@@ -1,5 +1,5 @@
 """
-Pydantic 模型包：用于API请求/响应验证
+Pydantic models package: for API request/response validation
 """
 from backend.schemas.task import (
     TaskCreate,

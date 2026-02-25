@@ -1,18 +1,18 @@
 """
-认证相关的 Pydantic 模型
+Authentication-related Pydantic models
 """
 from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Optional
 
 
 class UserLogin(BaseModel):
-    """用户登录请求"""
+    """User login request"""
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=6)
 
 
 class UserRegister(BaseModel):
-    """用户注册请求"""
+    """User registration request"""
     username: str = Field(..., min_length=3, max_length=50)
     email: Optional[EmailStr] = None
     password: str = Field(..., min_length=6)
@@ -29,20 +29,20 @@ class UserRegister(BaseModel):
 
 
 class Token(BaseModel):
-    """JWT Token 响应"""
+    """JWT Token response"""
     access_token: str
     token_type: str = "bearer"
-    expires_in: int = Field(..., description="过期时间（秒）")
+    expires_in: int = Field(..., description="Expiration time (seconds)")
 
 
 class TokenData(BaseModel):
-    """Token 数据（解码后）"""
+    """Token data (decoded)"""
     username: Optional[str] = None
     user_id: Optional[str] = None
 
 
 class UserResponse(BaseModel):
-    """用户信息响应"""
+    """User info response"""
     id: str
     username: str
     email: Optional[str] = None

@@ -1,5 +1,5 @@
 """
-Admin 管理路由
+Admin management routes
 """
 import json
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,7 +26,7 @@ async def list_all_users(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    列出所有用户 (仅管理员)
+    List all users (admin only)
     """
     users = await user_crud.get_multi(db, skip=skip, limit=limit)
     return [
@@ -47,7 +47,7 @@ async def delete_user(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    删除用户 (仅管理员)
+    Delete user (admin only)
     """
     user = await user_crud.get(db, user_id)
     if not user:
@@ -55,8 +55,8 @@ async def delete_user(
             status_code=404,
             detail="User not found"
         )
-    # 不允许删除自己
-    # 注意：这里需要从 dependencies 获取当前用户ID来对比，暂时略过，前端做限制即可，后端也可以加
+    # Cannot delete self
+    # Note: need to get current user ID from dependencies for comparison; skipped for now, frontend restriction is sufficient, backend can also add this
     
     await user_crud.remove(db, user_id)
     return {"message": "User deleted successfully"}
@@ -68,12 +68,12 @@ async def list_all_tasks(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    列出所有任务 (仅管理员)
+    List all tasks (admin only)
     """
     skip = (page - 1) * page_size
     tasks, total = await task_crud.get_multi_all(db, skip=skip, limit=page_size)
     
-    # 转换任务数据
+    # Transform task data
     task_responses = []
     for task in tasks:
         task_dict = {
@@ -106,7 +106,7 @@ async def delete_task(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    删除任务 (仅管理员)
+    Delete task (admin only)
     """
     task = await task_crud.get(db, task_id)
     if not task:

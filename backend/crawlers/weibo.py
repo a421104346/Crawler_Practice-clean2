@@ -1,5 +1,5 @@
 """
-微博热搜爬虫 (Playwright)
+Weibo Hot Search crawler (Playwright)
 """
 from backend.core.base_crawler import BaseCrawler
 import logging
@@ -12,16 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 class WeiboCrawler(BaseCrawler):
-    """微博热搜爬虫"""
+    """Weibo Hot Search crawler"""
     
     def __init__(self):
         super().__init__(use_fake_ua=True)
-        # 使用公开热搜页，避免登录墙
+        # Use public hot search page to avoid login wall
         self.url = "https://s.weibo.com/top/summary?cate=realtimehot"
         
     async def run(self, progress_callback=None) -> dict:
         """
-        执行爬取，包含重试机制
+        Execute scraping with retry mechanism
         """
         running_loop = asyncio.get_running_loop()
         if sys.platform == "win32":
@@ -30,7 +30,7 @@ class WeiboCrawler(BaseCrawler):
 
     def _run_in_new_loop(self, progress_callback, main_loop: asyncio.AbstractEventLoop) -> dict:
         """
-        在新事件循环中执行（Windows 兼容性）
+        Execute in new event loop (Windows compatibility)
         """
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         loop = asyncio.new_event_loop()
@@ -53,7 +53,7 @@ class WeiboCrawler(BaseCrawler):
 
     async def _run_internal(self, progress_callback=None) -> dict:
         """
-        实际爬取逻辑
+        Actual scraping logic
         """
         logger.info("Starting Weibo crawler...")
         
@@ -63,10 +63,10 @@ class WeiboCrawler(BaseCrawler):
         for attempt in range(max_retries):
             try:
                 if progress_callback:
-                    await progress_callback(5, f"启动浏览器 (尝试 {attempt + 1}/{max_retries})...")
+                    await progress_callback(5, f"Launching browser (attempt {attempt + 1}/{max_retries})...")
                 
                 async with async_playwright() as p:
-                    # 启动浏览器
+                    # Launch browser
                     browser = await p.chromium.launch(headless=True)
                     context = await browser.new_context(
                         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -81,18 +81,18 @@ class WeiboCrawler(BaseCrawler):
                     
                     try:
                         if progress_callback:
-                            await progress_callback(10, "正在访问微博热搜...")
+                            await progress_callback(10, "Accessing Weibo Hot Search...")
                         
                         response = await page.goto(self.url, timeout=30000, wait_until="domcontentloaded")
                         status = response.status if response else None
                         if status and status >= 400:
                             raise Exception(f"Unexpected status code: {status}")
                         
-                        # 等待加载
+                        # Wait for loading
                         if progress_callback:
-                            await progress_callback(20, "等待页面加载...")
+                            await progress_callback(20, "Waiting for page to load...")
                         
-                        # 等待列表元素出现
+                        # Wait for list elements to appear
                         try:
                             await page.wait_for_selector("#pl_top_realtimehot table tbody tr", timeout=10000)
                         except Exception as e:
@@ -159,7 +159,7 @@ class WeiboCrawler(BaseCrawler):
                         items = list(all_items_dict.values())
                         items.sort(key=lambda x: x['rank'])
                         
-                        # 如果成功获取数据，退出重试循环
+                        # If data retrieved successfully, exit retry loop
                         if items:
                             break
                         else:
@@ -174,17 +174,17 @@ class WeiboCrawler(BaseCrawler):
                 if attempt < max_retries - 1:
                     wait_time = (attempt + 1) * 2
                     if progress_callback:
-                        await progress_callback(10, f"发生错误，{wait_time}秒后重试...")
+                        await progress_callback(10, f"Error occurred, retrying in {wait_time}s...")
                     await asyncio.sleep(wait_time)
                 else:
                     if progress_callback:
-                        await progress_callback(90, f"最终失败: {str(e)}")
+                        await progress_callback(90, f"Final failure: {str(e)}")
                 
         if not items:
             raise Exception("No items found after retries")
 
         if progress_callback:
-            await progress_callback(100, "完成！")
+            await progress_callback(100, "Done!")
             
         return {
             "total": len(items),

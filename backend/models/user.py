@@ -1,5 +1,5 @@
 """
-用户模型：用于认证和数据隔离
+User model: for authentication and data isolation
 """
 from sqlalchemy import Column, String, Boolean, DateTime, Index
 from sqlalchemy.orm import relationship
@@ -9,27 +9,27 @@ import uuid
 
 
 class UserModel(Base):
-    """用户模型"""
+    """User model"""
     __tablename__ = "users"
     
-    # 主键
+    # Primary key
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     
-    # 用户信息
+    # User info
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(100), unique=True, nullable=True, index=True)
     hashed_password = Column(String(255), nullable=False)
     
-    # 状态
+    # Status
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     
-    # 时间戳
+    # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
     
-    # 关系
+    # Relationships
     tasks = relationship("TaskModel", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self):

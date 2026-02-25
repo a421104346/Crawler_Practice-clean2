@@ -1,5 +1,5 @@
 """
-FastAPI 依赖注入函数
+FastAPI dependency injection functions
 """
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -14,7 +14,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# HTTP Bearer 安全方案
+# HTTP Bearer security scheme
 security = HTTPBearer()
 
 
@@ -23,7 +23,7 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db)
 ) -> TokenData:
     """
-    验证 JWT Token 并返回当前用户数据
+    Validate JWT Token and return current user data
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -34,7 +34,7 @@ async def get_current_user(
     token = credentials.credentials
     
     try:
-        # 解码 JWT token
+        # Decode JWT token
         payload = jwt.decode(
             token, 
             settings.SECRET_KEY, 
@@ -47,7 +47,7 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
             
-        # 验证用户是否存在于数据库
+        # Verify user exists in database
         user = await user_crud.get(db, user_id)
         if not user:
             raise credentials_exception
@@ -65,7 +65,7 @@ async def get_current_user_obj(
     db: AsyncSession = Depends(get_db)
 ) -> UserModel:
     """
-    获取当前用户对象（包含完整数据库信息）
+    Get current user object (with full database info)
     """
     user = await user_crud.get(db, current_user.user_id)
     if not user:
@@ -78,7 +78,7 @@ async def get_current_active_user(
     db: AsyncSession = Depends(get_db)
 ) -> TokenData:
     """
-    验证用户是否处于活跃状态
+    Verify user is in active state
     """
     user = await user_crud.get(db, current_user.user_id)
     if not user or not user.is_active:
@@ -91,7 +91,7 @@ async def get_current_admin_user(
     db: AsyncSession = Depends(get_db)
 ) -> TokenData:
     """
-    验证用户是否有管理员权限
+    Verify user has admin privileges
     """
     user = await user_crud.get(db, current_user.user_id)
     if not user or not user.is_admin:

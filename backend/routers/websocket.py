@@ -1,5 +1,5 @@
 """
-WebSocket 路由：实时推送爬虫进度
+WebSocket routes: real-time crawler progress push
 """
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict, List
@@ -12,20 +12,20 @@ router = APIRouter(tags=["websocket"])
 
 
 class ConnectionManager:
-    """WebSocket 连接管理器"""
+    """WebSocket connection manager"""
     
     def __init__(self):
-        # 存储所有活跃的 WebSocket 连接
-        # 格式: {task_id: [websocket1, websocket2, ...]}
+        # Store all active WebSocket connections
+        # Format: {task_id: [websocket1, websocket2, ...]}
         self.active_connections: Dict[str, List[WebSocket]] = {}
     
     async def connect(self, websocket: WebSocket, task_id: str):
         """
-        接受新的 WebSocket 连接
+        Accept new WebSocket connection
         
         Args:
-            websocket: WebSocket 连接
-            task_id: 任务ID（客户端订阅特定任务）
+            websocket: WebSocket connection
+            task_id: Task ID (client subscribes to specific task)
         """
         await websocket.accept()
         
@@ -37,33 +37,33 @@ class ConnectionManager:
     
     def disconnect(self, websocket: WebSocket, task_id: str):
         """
-        断开 WebSocket 连接
+        Disconnect WebSocket connection
         
         Args:
-            websocket: WebSocket 连接
-            task_id: 任务ID
+            websocket: WebSocket connection
+            task_id: Task ID
         """
         if task_id in self.active_connections:
             if websocket in self.active_connections[task_id]:
                 self.active_connections[task_id].remove(websocket)
                 logger.info(f"WebSocket disconnected for task {task_id}")
             
-            # 如果没有连接了，删除任务
+            # If no connections left, remove task
             if not self.active_connections[task_id]:
                 del self.active_connections[task_id]
     
     async def send_to_task(self, task_id: str, message: dict):
         """
-        向特定任务的所有订阅者发送消息
+        Send message to all subscribers of a specific task
         
         Args:
-            task_id: 任务ID
-            message: 消息内容（dict）
+            task_id: Task ID
+            message: Message content (dict)
         """
         if task_id not in self.active_connections:
             return
         
-        # 需要移除的连接列表（已断开的）
+        # List of connections to remove (disconnected)
         disconnected = []
         
         for connection in self.active_connections[task_id]:
@@ -73,41 +73,41 @@ class ConnectionManager:
                 logger.warning(f"Failed to send message to websocket: {e}")
                 disconnected.append(connection)
         
-        # 清理已断开的连接
+        # Clean up disconnected connections
         for connection in disconnected:
             self.disconnect(connection, task_id)
     
     async def broadcast_to_task(self, task_id: str, message: dict):
         """
-        广播消息到特定任务的所有订阅者（别名方法）
+        Broadcast message to all subscribers of a specific task (alias method)
         
         Args:
-            task_id: 任务ID
-            message: 消息内容
+            task_id: Task ID
+            message: Message content
         """
         await self.send_to_task(task_id, message)
     
     async def broadcast_all(self, message: dict):
         """
-        广播消息到所有连接
+        Broadcast message to all connections
         
         Args:
-            message: 消息内容
+            message: Message content
         """
         for task_id in list(self.active_connections.keys()):
             await self.send_to_task(task_id, message)
 
 
-# 创建全局连接管理器
+# Create global connection manager
 manager = ConnectionManager()
 
 
 @router.websocket("/ws/tasks/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
     """
-    WebSocket 端点：实时推送任务进度
+    WebSocket endpoint: real-time task progress push
     
-    客户端连接示例：
+    Client connection example:
         const ws = new WebSocket("ws://localhost:8000/ws/tasks/{task_id}");
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -115,31 +115,31 @@ async def websocket_endpoint(websocket: WebSocket, task_id: str):
         };
     
     Args:
-        websocket: WebSocket 连接
-        task_id: 任务ID
+        websocket: WebSocket connection
+        task_id: Task ID
     """
     await manager.connect(websocket, task_id)
     
     try:
-        # 发送欢迎消息
+        # Send welcome message
         await websocket.send_json({
             "task_id": task_id,
             "message": f"Connected to task {task_id}",
             "type": "connection"
         })
         
-        # 保持连接，监听客户端消息
+        # Keep connection alive, listen for client messages
         while True:
-            # 接收客户端消息（可选，用于实现双向通信）
+            # Receive client messages (optional, for bidirectional communication)
             data = await websocket.receive_text()
             
-            # 这里可以处理客户端发来的命令
-            # 例如：暂停任务、取消任务等
+            # Handle commands from client here
+            # e.g., pause task, cancel task, etc.
             try:
                 command = json.loads(data)
                 if command.get("action") == "ping":
                     await websocket.send_json({"type": "pong"})
-                # TODO: 实现更多命令（暂停、取消等）
+                # TODO: Implement more commands (pause, cancel, etc.)
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON from client: {data}")
                 

@@ -1,5 +1,5 @@
 """
-任务 CRUD 操作
+Task CRUD operations
 """
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, func, and_, or_
@@ -11,7 +11,7 @@ import json
 
 
 class TaskCRUD:
-    """任务的 CRUD 操作"""
+    """Task CRUD operations"""
     
     async def get_multi_all(
         self,
@@ -19,12 +19,12 @@ class TaskCRUD:
         skip: int = 0,
         limit: int = 20
     ) -> tuple[List[TaskModel], int]:
-        """获取所有任务（管理员用，返回列表和总数）"""
-        # 查询总数
+        """Get all tasks (admin, returns list and count)"""
+        # Query total count
         count_query = select(func.count()).select_from(TaskModel)
         total = await db.scalar(count_query)
         
-        # 查询数据
+        # Query data
         query = select(TaskModel).order_by(TaskModel.created_at.desc())
         query = query.offset(skip).limit(limit)
         
@@ -36,7 +36,7 @@ class TaskCRUD:
         db: AsyncSession,
         task_id: str
     ) -> Optional[TaskModel]:
-        """删除任务并返回被删除的对象"""
+        """Delete task and return the deleted object"""
         task = await self.get(db, task_id)
         if task:
             await db.delete(task)
@@ -49,8 +49,8 @@ class TaskCRUD:
         task_in: TaskCreate,
         user_id: str
     ) -> TaskModel:
-        """创建新任务"""
-        # 将 params dict 转换为 JSON 字符串
+        """Create new task"""
+        # Convert params dict to JSON string
         params_json = json.dumps(task_in.params) if task_in.params else None
         
         task = TaskModel(
@@ -72,7 +72,7 @@ class TaskCRUD:
         task_id: str,
         user_id: Optional[str] = None
     ) -> Optional[TaskModel]:
-        """根据ID获取任务（可选验证用户）"""
+        """Get task by ID (optionally verify user)"""
         stmt = select(TaskModel).where(TaskModel.id == task_id)
         if user_id:
             stmt = stmt.where(TaskModel.user_id == user_id)
@@ -89,10 +89,10 @@ class TaskCRUD:
         crawler_type: Optional[str] = None,
         user_id: Optional[str] = None
     ) -> List[TaskModel]:
-        """获取任务列表（带过滤和分页）"""
+        """Get task list (with filtering and pagination)"""
         query = select(TaskModel)
         
-        # 添加过滤条件
+        # Add filter conditions
         if status:
             query = query.where(TaskModel.status == status)
         if crawler_type:
@@ -100,10 +100,10 @@ class TaskCRUD:
         if user_id:
             query = query.where(TaskModel.user_id == user_id)
         
-        # 按创建时间倒序
+        # Order by creation time descending
         query = query.order_by(TaskModel.created_at.desc())
         
-        # 分页
+        # Pagination
         query = query.offset(skip).limit(limit)
         
         result = await db.execute(query)
@@ -116,7 +116,7 @@ class TaskCRUD:
         crawler_type: Optional[str] = None,
         user_id: Optional[str] = None
     ) -> int:
-        """统计任务数量"""
+        """Count tasks"""
         query = select(func.count()).select_from(TaskModel)
         
         if status:
@@ -136,24 +136,24 @@ class TaskCRUD:
         task_update: TaskUpdate,
         user_id: Optional[str] = None
     ) -> Optional[TaskModel]:
-        """更新任务"""
-        # 获取任务
+        """Update task"""
+        # Get task
         task = await self.get(db, task_id, user_id)
         if not task:
             return None
         
-        # 更新字段
+        # Update fields
         update_data = task_update.model_dump(exclude_unset=True)
         
-        # 特殊处理：将result转换为JSON字符串
+        # Special handling: convert result to JSON string
         if "result" in update_data and update_data["result"] is not None:
             update_data["result"] = json.dumps(update_data["result"])
         
-        # 如果状态变为 running，记录开始时间
+        # If status changes to running, record start time
         if update_data.get("status") == "running" and not task.started_at:
             update_data["started_at"] = datetime.utcnow()
         
-        # 如果状态变为 completed 或 failed，记录完成时间和计算时长
+        # If status changes to completed or failed, record completion time and calculate duration
         if update_data.get("status") in ["completed", "failed"]:
             if not task.completed_at:
                 started_at = task.started_at
@@ -167,7 +167,7 @@ class TaskCRUD:
                     duration = (now - started_at).total_seconds()
                     update_data["duration"] = duration
         
-        # 执行更新
+        # Execute update
         for key, value in update_data.items():
             setattr(task, key, value)
         
@@ -180,7 +180,7 @@ class TaskCRUD:
         db: AsyncSession,
         timeout_seconds: int
     ) -> int:
-        """回收运行超时的任务，返回更新数量"""
+        """Recycle timed-out running tasks, return update count"""
         if timeout_seconds <= 0:
             return 0
 
@@ -211,7 +211,7 @@ class TaskCRUD:
         task_id: str,
         user_id: Optional[str] = None
     ) -> bool:
-        """删除任务"""
+        """Delete task"""
         stmt = delete(TaskModel).where(TaskModel.id == task_id)
         if user_id:
             stmt = stmt.where(TaskModel.user_id == user_id)
@@ -221,5 +221,5 @@ class TaskCRUD:
         return result.rowcount > 0
 
 
-# 创建全局实例
+# Create global instance
 task_crud = TaskCRUD()

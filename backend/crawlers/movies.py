@@ -1,5 +1,5 @@
 """
-豆瓣电影 Top250 爬虫
+Douban Movies Top250 crawler
 """
 from backend.core.base_crawler import BaseCrawler
 import re
@@ -10,21 +10,21 @@ logger = logging.getLogger(__name__)
 
 
 class MoviesCrawler(BaseCrawler):
-    """豆瓣电影 Top250 爬虫"""
+    """Douban Movies Top250 crawler"""
     
     def __init__(self, max_pages: int = 1, progress_callback=None):
         """
-        初始化电影爬虫
+        Initialize movies crawler
         
         Args:
-            max_pages: 要爬取的页数 (每页25部电影，10页=250部)
-            progress_callback: 进度回调函数
+            max_pages: Number of pages to crawl (25 movies per page, 10 pages=250)
+            progress_callback: Progress callback function
         """
         super().__init__(use_fake_ua=True, base_delay=2.0, progress_callback=progress_callback)
         self.max_pages = max_pages
         self.base_url = "https://movie.douban.com/top250"
         
-        # 设置特定的 headers
+        # Set specific headers
         self.client.headers.update({
             'Referer': 'https://movie.douban.com/'
         })
@@ -33,13 +33,13 @@ class MoviesCrawler(BaseCrawler):
     
     async def fetch_page(self, start: int) -> str:
         """
-        抓取单个页面
+        Fetch a single page
         
         Args:
-            start: 起始索引 (0, 25, 50...)
+            start: Start index (0, 25, 50...)
         
         Returns:
-            HTML 内容
+            HTML content
         """
         url = f"{self.base_url}?start={start}"
         logger.info(f"Fetching: {url}")
@@ -54,13 +54,13 @@ class MoviesCrawler(BaseCrawler):
     
     def parse_page(self, html: str) -> list[dict]:
         """
-        解析 HTML 提取电影信息
+        Parse HTML to extract movie info
         
         Args:
-            html: 页面 HTML
+            html: Page HTML
         
         Returns:
-            电影列表
+            Movie list
         """
         soup = BeautifulSoup(html, "html.parser")
         items = soup.find_all("div", class_="item")
@@ -69,25 +69,25 @@ class MoviesCrawler(BaseCrawler):
         
         for item in items:
             try:
-                # 1. 标题
+                # 1. Title
                 title = item.find("span", class_="title").get_text()
                 
-                # 2. 评分
+                # 2. Rating
                 rating = item.find("span", class_="rating_num").get_text()
                 
-                # 3. 评价人数
+                # 3. Number of reviews
                 people_span = item.find("span", string=re.compile("人评价"))
                 if people_span:
                     people_count = re.sub(r'\D', '', people_span.get_text())
                 else:
                     people_count = 0
                 
-                # 4. 年份
+                # 4. Year
                 info_text = item.find("div", class_="bd").p.get_text()
                 year_match = re.search(r'\d{4}', info_text)
                 year = year_match.group() if year_match else "Unknown"
                 
-                # 5. 导演和演员信息（可选）
+                # 5. Director and actor info (optional)
                 director_match = re.search(r'导演:\s*(.*?)(?:\xa0|主演)', info_text)
                 director = director_match.group(1).strip() if director_match else "Unknown"
                 
@@ -109,10 +109,10 @@ class MoviesCrawler(BaseCrawler):
     
     async def run(self, progress_callback=None) -> dict:
         """
-        执行爬虫流程
+        Execute crawler workflow
         
         Returns:
-            爬取结果：{"movies": [...], "total": N}
+            Crawl results: {"movies": [...], "total": N}
         """
         if progress_callback:
             self.progress_callback = progress_callback
@@ -121,19 +121,19 @@ class MoviesCrawler(BaseCrawler):
         self.movies = []
         
         for i in range(self.max_pages):
-            # 更新进度
+            # Update progress
             if self.progress_callback:
                 logger.info(f"Calling progress callback for page {i+1}")
-                # 进度计算：假设抓取占 80%，处理占 20%
-                # 当前页进度 = (i / max_pages) * 80
-                progress = int((i / self.max_pages) * 80) + 10  # +10 是因为还有初始化阶段
+                # Progress calculation: assume scraping is 80%, processing is 20%
+                # Current page progress = (i / max_pages) * 80
+                progress = int((i / self.max_pages) * 80) + 10  # +10 for the initialization phase
                 
-                # 处理 async 回调
+                # Handle async callback
                 import inspect
                 if inspect.iscoroutinefunction(self.progress_callback):
-                    await self.progress_callback(progress, f"正在抓取第 {i+1}/{self.max_pages} 页...")
+                    await self.progress_callback(progress, f"Scraping page {i+1}/{self.max_pages}...")
                 else:
-                    self.progress_callback(progress, f"正在抓取第 {i+1}/{self.max_pages} 页...")
+                    self.progress_callback(progress, f"Scraping page {i+1}/{self.max_pages}...")
             else:
                 logger.warning("No progress_callback provided!")
             
@@ -148,17 +148,17 @@ class MoviesCrawler(BaseCrawler):
                 logger.warning(f"Failed to fetch page {i+1}, stopping")
                 if self.progress_callback:
                     if inspect.iscoroutinefunction(self.progress_callback):
-                        await self.progress_callback(progress, f"抓取第 {i+1} 页失败")
+                        await self.progress_callback(progress, f"Failed to scrape page {i+1}")
                     else:
-                        self.progress_callback(progress, f"抓取第 {i+1} 页失败")
+                        self.progress_callback(progress, f"Failed to scrape page {i+1}")
                 break
         
-        # 完成抓取，准备返回
+        # Scraping complete, preparing results
         if self.progress_callback:
             if inspect.iscoroutinefunction(self.progress_callback):
-                await self.progress_callback(90, "数据整理中...")
+                await self.progress_callback(90, "Organizing data...")
             else:
-                self.progress_callback(90, "数据整理中...")
+                self.progress_callback(90, "Organizing data...")
             
         result = {
             "movies": self.movies,
@@ -170,8 +170,8 @@ class MoviesCrawler(BaseCrawler):
         
         if self.progress_callback:
             if inspect.iscoroutinefunction(self.progress_callback):
-                await self.progress_callback(100, "完成！")
+                await self.progress_callback(100, "Done!")
             else:
-                self.progress_callback(100, "完成！")
+                self.progress_callback(100, "Done!")
             
         return result

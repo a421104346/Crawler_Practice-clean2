@@ -1,5 +1,5 @@
 """
-性能监控和指标收集
+Performance monitoring and metrics collection
 """
 import psutil
 import time
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class PerformanceMonitor:
-    """性能监控器"""
+    """Performance monitor"""
     
     def __init__(self):
         self.start_time = time.time()
@@ -20,10 +20,10 @@ class PerformanceMonitor:
     
     def get_system_metrics(self) -> Dict[str, Any]:
         """
-        获取系统指标
+        Get system metrics
         
         Returns:
-            系统指标字典
+            System metrics dictionary
         """
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
@@ -54,10 +54,10 @@ class PerformanceMonitor:
     
     def get_app_metrics(self) -> Dict[str, Any]:
         """
-        获取应用指标
+        Get application metrics
         
         Returns:
-            应用指标字典
+            Application metrics dictionary
         """
         uptime = time.time() - self.start_time
         
@@ -71,13 +71,13 @@ class PerformanceMonitor:
     
     def _format_uptime(self, seconds: float) -> str:
         """
-        格式化运行时间
+        Format uptime
         
         Args:
-            seconds: 秒数
+            seconds: Number of seconds
         
         Returns:
-            格式化的时间字符串
+            Formatted time string
         """
         days = int(seconds // 86400)
         hours = int((seconds % 86400) // 3600)
@@ -87,31 +87,31 @@ class PerformanceMonitor:
         return f"{days}d {hours}h {minutes}m {secs}s"
     
     def increment_request(self):
-        """增加请求计数"""
+        """Increment request count"""
         self.request_count += 1
     
     def increment_error(self):
-        """增加错误计数"""
+        """Increment error count"""
         self.error_count += 1
 
 
-# 全局监控器实例
+# Global monitor instance
 monitor = PerformanceMonitor()
 
 
 async def check_database_health() -> Dict[str, Any]:
     """
-    检查数据库健康状态
+    Check database health status
     
     Returns:
-        健康状态字典
+        Health status dictionary
     """
     from backend.database import AsyncSessionLocal
     from sqlalchemy import text
     
     try:
         async with AsyncSessionLocal() as session:
-            # 执行简单查询
+            # Execute simple query
             result = await session.execute(text("SELECT 1"))
             result.scalar()
             
@@ -129,10 +129,10 @@ async def check_database_health() -> Dict[str, Any]:
 
 async def check_redis_health() -> Dict[str, Any]:
     """
-    检查 Redis 健康状态
+    Check Redis health status
     
     Returns:
-        健康状态字典
+        Health status dictionary
     """
     try:
         import redis
@@ -141,7 +141,7 @@ async def check_redis_health() -> Dict[str, Any]:
         if not settings.REDIS_URL:
             return {"status": "not_configured"}
         
-        # 连接 Redis
+        # Connect to Redis
         r = redis.from_url(settings.REDIS_URL)
         r.ping()
         
@@ -159,15 +159,15 @@ async def check_redis_health() -> Dict[str, Any]:
 
 async def check_celery_health() -> Dict[str, Any]:
     """
-    检查 Celery 健康状态
+    Check Celery health status
     
     Returns:
-        健康状态字典
+        Health status dictionary
     """
     try:
         from backend.celery_app import celery_app
         
-        # 检查 Celery 是否可用
+        # Check if Celery is available
         inspect = celery_app.control.inspect()
         stats = inspect.stats()
         

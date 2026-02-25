@@ -1,5 +1,5 @@
 """
-Celery 任务包
+Celery tasks package
 """
 from backend.tasks.crawler_tasks import run_crawler_task
 

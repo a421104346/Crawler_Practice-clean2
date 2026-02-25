@@ -1,5 +1,5 @@
 """
-Alembic 环境配置
+Alembic environment configuration
 """
 from logging.config import fileConfig
 from sqlalchemy import pool
@@ -9,32 +9,32 @@ import asyncio
 import sys
 import os
 
-# 添加项目根目录到路径
+# Add project root directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 导入模型
+# Import models
 from backend.database import Base
-from backend.models.task import TaskModel  # 确保所有模型都被导入
+from backend.models.task import TaskModel  # Ensure all models are imported
 from backend.config import settings
 
-# Alembic Config 对象
+# Alembic Config object
 config = context.config
 
-# 从 settings 读取数据库 URL
+# Read database URL from settings
 db_url = settings.POSTGRES_URL or settings.DATABASE_URL
 config.set_main_option("sqlalchemy.url", db_url)
 
-# 配置日志
+# Configure logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# MetaData 对象
+# MetaData object
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
     """
-    离线模式：生成 SQL 脚本但不执行
+    Offline mode: generate SQL scripts without executing
     """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -49,7 +49,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection):
-    """执行迁移"""
+    """Execute migrations"""
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
@@ -57,7 +57,7 @@ def do_run_migrations(connection):
 
 
 async def run_async_migrations():
-    """异步运行迁移"""
+    """Run migrations asynchronously"""
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -72,7 +72,7 @@ async def run_async_migrations():
 
 def run_migrations_online() -> None:
     """
-    在线模式：直接连接数据库执行迁移
+    Online mode: directly connect to database and execute migrations
     """
     asyncio.run(run_async_migrations())
 

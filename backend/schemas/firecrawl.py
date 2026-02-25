@@ -1,5 +1,5 @@
 """
-Firecrawl 接口的请求/响应模型
+Firecrawl API request/response models
 """
 from typing import Optional, Any, Dict, List
 from pydantic import BaseModel, Field, HttpUrl
@@ -15,87 +15,87 @@ __all__ = [
 
 
 class FirecrawlScrapeRequest(BaseModel):
-    """Firecrawl 抓取请求"""
+    """Firecrawl scrape request"""
 
-    url: HttpUrl = Field(..., description="需要抓取的页面 URL")
+    url: HttpUrl = Field(..., description="URL of the page to scrape")
     formats: list[str] = Field(
         default_factory=lambda: ["markdown"],
         min_length=1,
-        description="返回格式列表，例如 markdown/html/rawHtml/screenshot/json"
+        description="Response format list, e.g. markdown/html/rawHtml/screenshot/json"
     )
     only_main_content: bool = Field(
         default=True,
-        description="是否仅返回主内容（去噪）"
+        description="Whether to return main content only (denoised)"
     )
     wait_for: Optional[int] = Field(
         default=None,
         ge=0,
-        description="等待页面加载的毫秒数（可选）"
+        description="Page load wait time in ms (optional)"
     )
     timeout_ms: Optional[int] = Field(
         default=None,
         ge=1000,
-        description="请求超时毫秒数（可选）"
+        description="Request timeout in ms (optional)"
     )
     cookie: Optional[str] = Field(
         default=None,
-        description="登录态 Cookie（可选，用于登录后页面）"
+        description="Session cookie (optional, for authenticated pages)"
     )
     headers: Optional[Dict[str, str]] = Field(
         default=None,
-        description="自定义请求头（可选）"
+        description="Custom request headers (optional)"
     )
 
 
 class FirecrawlScrapeResponse(BaseModel):
-    """Firecrawl 抓取响应"""
+    """Firecrawl scrape response"""
 
-    success: bool = Field(..., description="是否成功")
-    data: Optional[Dict[str, Any]] = Field(default=None, description="返回数据")
-    error: Optional[str] = Field(default=None, description="错误信息")
+    success: bool = Field(..., description="Whether successful")
+    data: Optional[Dict[str, Any]] = Field(default=None, description="Response data")
+    error: Optional[str] = Field(default=None, description="Error message")
 
 
 class FirecrawlWeiboHotRankRequest(BaseModel):
-    """微博热搜 Rank1 抓取请求"""
+    """Weibo Hot Search Rank1 scrape request"""
 
-    pages: int = Field(default=5, ge=1, le=5, description="抓取页数（默认前 5 页）")
+    pages: int = Field(default=5, ge=1, le=5, description="Number of pages to scrape (default: first 5)")
     wait_for: Optional[int] = Field(
         default=None,
         ge=0,
-        description="等待页面加载的毫秒数（可选）"
+        description="Page load wait time in ms (optional)"
     )
     timeout_ms: Optional[int] = Field(
         default=None,
         ge=1000,
-        description="请求超时毫秒数（可选）"
+        description="Request timeout in ms (optional)"
     )
     cookie: Optional[str] = Field(
         default=None,
-        description="登录态 Cookie（可选，用于登录后页面）"
+        description="Session cookie (optional, for authenticated pages)"
     )
 
 
 class WeiboHotRankPost(BaseModel):
-    """微博热搜话题下的帖子"""
+    """Post under Weibo hot search topic"""
 
-    username: str = Field(..., description="用户名")
-    user_link: str = Field(..., description="用户主页链接")
-    content: str = Field(..., description="帖子内容")
+    username: str = Field(..., description="Username")
+    user_link: str = Field(..., description="User profile link")
+    content: str = Field(..., description="Post content")
 
 
 class FirecrawlWeiboHotRankResult(BaseModel):
-    """微博热搜 Rank1 抓取结果"""
+    """Weibo Hot Search Rank1 scrape result"""
 
-    topic_title: str = Field(..., description="热搜话题标题")
-    topic_url: str = Field(..., description="热搜话题链接")
-    pages: int = Field(..., description="实际抓取页数")
-    total_posts: int = Field(..., description="帖子总数")
-    posts: List[WeiboHotRankPost] = Field(default_factory=list, description="帖子列表")
+    topic_title: str = Field(..., description="Hot search topic title")
+    topic_url: str = Field(..., description="Hot search topic URL")
+    pages: int = Field(..., description="Actual pages scraped")
+    total_posts: int = Field(..., description="Total posts")
+    posts: List[WeiboHotRankPost] = Field(default_factory=list, description="Post list")
 
 
 class FirecrawlWeiboHotRankResponse(BaseModel):
-    """微博热搜 Rank1 抓取响应"""
+    """Weibo Hot Search Rank1 scrape response"""
 
-    success: bool = Field(..., description="是否成功")
-    data: Optional[FirecrawlWeiboHotRankResult] = Field(default=None, description="返回数据")
-    error: Optional[str] = Field(default=None, description="错误信息")
+    success: bool = Field(..., description="Whether successful")
+    data: Optional[FirecrawlWeiboHotRankResult] = Field(default=None, description="Response data")
+    error: Optional[str] = Field(default=None, description="Error message")

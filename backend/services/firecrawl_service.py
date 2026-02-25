@@ -1,5 +1,5 @@
 """
-Firecrawl 服务：封装第三方 API 调用
+Firecrawl service: wraps third-party API calls
 """
 from typing import Any, Dict, List, Tuple
 import logging
@@ -71,7 +71,7 @@ def _build_firecrawl_payload(request: FirecrawlScrapeRequest) -> Dict[str, Any]:
 
 async def scrape_firecrawl(request: FirecrawlScrapeRequest) -> FirecrawlScrapeResponse:
     """
-    调用 Firecrawl 的 scrape 接口并返回结果。
+    Calls Firecrawl's scrape API and returns the result.
     """
     if not settings.FIRECRAWL_API_KEY:
         raise ValueError("FIRECRAWL_API_KEY is not configured")
@@ -195,7 +195,7 @@ def _extract_weibo_posts(tree: lxml_html.HtmlElement) -> Tuple[List[WeiboHotRank
             continue
 
         user_link = _normalize_weibo_link(user_links[0]) if user_links else ""
-        display_name = username if username else "未知用户"
+        display_name = username if username else "Unknown user"
 
         key = (display_name, content)
         if key in seen:
@@ -208,13 +208,13 @@ def _extract_weibo_posts(tree: lxml_html.HtmlElement) -> Tuple[List[WeiboHotRank
 
 def _detect_weibo_blocked(html_content: str) -> str:
     signals = [
-        "访问频次过高",
-        "安全验证",
-        "验证码",
-        "请开启 JavaScript",
-        "请开启JavaScript",
-        "由于您的访问频次过高",
-        "请稍后再试"
+        "Access frequency too high",
+        "Security verification",
+        "Captcha",
+        "Please enable JavaScript",
+        "Please enable JavaScript",
+        "Due to high access frequency",
+        "Please try again later"
     ]
     for signal in signals:
         if signal in html_content:
@@ -226,7 +226,7 @@ async def scrape_weibo_hot_rank1_posts(
     request: FirecrawlWeiboHotRankRequest
 ) -> FirecrawlWeiboHotRankResponse:
     """
-    抓取微博热搜 Rank1 话题并采集前五页帖子内容。
+    Scrape Weibo Hot Search Rank1 topic and collect posts from the first 5 pages.
     """
     hot_response = await scrape_firecrawl(
         FirecrawlScrapeRequest(

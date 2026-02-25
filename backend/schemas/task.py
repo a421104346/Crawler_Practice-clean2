@@ -1,5 +1,5 @@
 """
-任务相关的 Pydantic 模型
+Task-related Pydantic models
 """
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Any
@@ -7,18 +7,18 @@ from datetime import datetime
 
 
 class TaskCreate(BaseModel):
-    """创建任务的请求模型"""
+    """Task creation request model"""
     crawler_type: str = Field(
         ...,
-        description="爬虫类型",
+        description="Crawler type",
         json_schema_extra={"example": "yahoo"}
     )
-    params: Optional[dict] = Field(default={}, description="爬虫参数")
-    user_id: Optional[str] = Field(None, description="用户ID（可选）")
+    params: Optional[dict] = Field(default={}, description="Crawler parameters")
+    user_id: Optional[str] = Field(None, description="User ID (optional)")
 
 
 class TaskUpdate(BaseModel):
-    """更新任务的请求模型"""
+    """Task update request model"""
     status: Optional[str] = None
     progress: Optional[int] = Field(None, ge=0, le=100)
     result: Optional[Any] = None
@@ -26,7 +26,7 @@ class TaskUpdate(BaseModel):
 
 
 class TaskResponse(BaseModel):
-    """任务响应模型"""
+    """Task response model"""
     id: str
     crawler_type: str
     status: str
@@ -44,7 +44,7 @@ class TaskResponse(BaseModel):
 
 
 class TaskListResponse(BaseModel):
-    """任务列表响应"""
+    """Task list response"""
     total: int
     tasks: list[TaskResponse]
     page: int = 1

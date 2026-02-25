@@ -1,5 +1,5 @@
 """
-爬虫相关的API路由
+Crawler-related API routes
 """
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/crawlers", tags=["crawlers"])
 
-# 检测是否启用 Celery（通过环境变量）
+# Detect if Celery is enabled (via environment variable)
 USE_CELERY = os.getenv("USE_CELERY", "false").lower() == "true"
 
 if USE_CELERY:
@@ -35,7 +35,7 @@ if USE_CELERY:
 @router.get("", response_model=List[CrawlerInfo])
 async def list_crawlers():
     """
-    获取所有可用的爬虫列表
+    Get all available crawlers list
     """
     try:
         crawlers = crawler_service.list_crawlers()
@@ -48,7 +48,7 @@ async def list_crawlers():
 @router.get("/{crawler_type}", response_model=CrawlerInfo)
 async def get_crawler_info(crawler_type: str):
     """
-    获取特定爬虫的详细信息
+    Get specific crawler details
     """
     info = crawler_service.get_crawler_info(crawler_type)
     if not info:
@@ -68,20 +68,20 @@ async def run_crawler(
     current_user: TokenData = Depends(get_current_user)
 ):
     """
-    启动爬虫任务（后台运行）
+    Launch crawler task (background execution)
     
     Args:
-        crawler_type: 爬虫类型 (yahoo, movies, jobs等)
-        request: 爬虫请求参数
-        background_tasks: FastAPI 后台任务管理器
-        db: 数据库会话
-        current_user: 当前登录用户
+        crawler_type: Crawler type (yahoo, movies, jobs, etc.)
+        request: Crawler request parameters
+        background_tasks: FastAPI BackgroundTasks manager
+        db: Database session
+        current_user: Current logged-in user
     
     Returns:
-        CrawlerResponse: 包含任务ID和状态
+        CrawlerResponse: Contains task ID and status
     """
     try:
-        # 1. 验证爬虫是否存在
+        # 1. Validate crawler exists
         info = crawler_service.get_crawler_info(crawler_type)
         if not info:
             raise HTTPException(
@@ -89,12 +89,12 @@ async def run_crawler(
                 detail=f"Crawler '{crawler_type}' not found"
             )
         
-        # 2. 准备爬虫参数
+        # 2. Prepare crawler parameters
         params = request.model_dump(exclude_unset=True, exclude={"extra_params"})
         if request.extra_params:
             params.update(request.extra_params)
         
-        # 3. 创建任务记录
+        # 3. Create task record
         task_create = TaskCreate(
             crawler_type=crawler_type,
             params=params,
@@ -104,13 +104,13 @@ async def run_crawler(
         
         logger.info(f"Created task {task.id} for crawler {crawler_type}")
         
-        # 4. 提交任务（Celery 或 BackgroundTasks）
+        # 4. Submit task (Celery or BackgroundTasks)
         if USE_CELERY:
-            # 使用 Celery 异步任务队列
+            # Use Celery async task queue
             celery_run_crawler.delay(task.id, crawler_type, params)
             logger.info(f"Task {task.id} submitted to Celery")
         else:
-            # 使用 FastAPI BackgroundTasks（默认）
+            # Use FastAPI BackgroundTasks (default)
             background_tasks.add_task(
                 execute_crawler_task,
                 task_id=task.id,
@@ -144,9 +144,9 @@ async def execute_crawler_task(
     params: dict
 ):
     """
-    后台执行爬虫任务
+    Execute crawler task in background
     
-    这个函数在后台线程中运行，不会阻塞API响应
+    This function runs in a background thread without blocking the API response
     """
     from backend.database import AsyncSessionLocal
     from backend.schemas.task import TaskUpdate
@@ -155,7 +155,7 @@ async def execute_crawler_task(
     try:
         logger.info(f"Executing task {task_id}: {crawler_type}")
         
-        # 1. 更新任务状态为 running (使用独立的会话)
+        # 1. Update task status to running (using independent session)
         async with AsyncSessionLocal() as db:
             await task_crud.update(
                 db,
@@ -163,7 +163,7 @@ async def execute_crawler_task(
                 TaskUpdate(status="running", progress=0)
             )
         
-        # 2. 广播任务开始
+        # 2. Broadcast task start
         await manager.broadcast_to_task(task_id, {
             "task_id": task_id,
             "status": "running",
@@ -171,9 +171,9 @@ async def execute_crawler_task(
             "message": "Task started"
         })
         
-        # 3. 定义进度回调函数 (每次调用使用独立的会话，防止并发冲突)
+        # 3. Define progress callback (each call uses independent session to prevent concurrency conflicts)
         async def progress_callback(progress: int, message: str):
-            """更新进度到数据库和WebSocket"""
+            """Update progress to database and WebSocket"""
             logger.info(f"Progress callback triggered: {progress}% - {message}")
             try:
                 async with AsyncSessionLocal() as db:
@@ -191,14 +191,14 @@ async def execute_crawler_task(
             except Exception as e:
                 logger.error(f"Error in progress callback: {e}")
         
-        # 4. 执行爬虫
+        # 4. Execute crawler
         result = await crawler_service.run_crawler(
             crawler_type,
             params,
             progress_callback=progress_callback
         )
         
-        # 5. 更新任务状态为 completed (使用独立的会话)
+        # 5. Update task status to completed (using independent session)
         async with AsyncSessionLocal() as db:
             await task_crud.update(
                 db,
@@ -210,7 +210,7 @@ async def execute_crawler_task(
                 )
             )
         
-        # 6. 广播完成消息
+        # 6. Broadcast completion message
         await manager.broadcast_to_task(task_id, {
             "task_id": task_id,
             "status": "completed",
@@ -224,7 +224,7 @@ async def execute_crawler_task(
     except Exception as e:
         logger.error(f"Task {task_id} failed: {e}", exc_info=True)
         
-        # 更新任务状态为 failed (使用独立的会话)
+        # Update task status to failed (using independent session)
         async with AsyncSessionLocal() as db:
             await task_crud.update(
                 db,
@@ -235,7 +235,7 @@ async def execute_crawler_task(
                 )
             )
         
-        # 广播失败消息
+        # Broadcast failure message
         await manager.broadcast_to_task(task_id, {
             "task_id": task_id,
             "status": "failed",

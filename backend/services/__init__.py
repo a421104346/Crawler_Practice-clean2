@@ -1,5 +1,5 @@
 """
-业务逻辑服务包
+Business logic services package
 """
 from backend.services.crawler_service import crawler_service
 from backend.services.firecrawl_service import scrape_firecrawl, scrape_weibo_hot_rank1_posts

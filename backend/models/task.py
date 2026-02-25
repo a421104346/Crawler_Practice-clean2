@@ -1,5 +1,5 @@
 """
-任务模型：存储爬虫任务的状态和结果
+Task model: stores crawler task status and results
 """
 from sqlalchemy import Column, String, Integer, DateTime, Text, Float, ForeignKey, Index
 from sqlalchemy.orm import relationship
@@ -9,17 +9,17 @@ import uuid
 
 
 class TaskModel(Base):
-    """爬虫任务模型"""
+    """Crawler task model"""
     __tablename__ = "tasks"
     
-    # 主键
+    # Primary key
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     
-    # 用户关联（外键） - 确保数据隔离
+    # User association (foreign key) - ensures data isolation
     user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'), 
                     nullable=False, index=True)
     
-    # 任务信息
+    # Task info
     crawler_type = Column(String(50), nullable=False, index=True)
     status = Column(
         String(20), 
@@ -28,29 +28,29 @@ class TaskModel(Base):
         index=True
     )  # pending, running, completed, failed, cancelled
     
-    # 进度
+    # Progress
     progress = Column(Integer, default=0)  # 0-100
     
-    # 输入参数（JSON字符串）
+    # Input parameters (JSON string)
     params = Column(Text, nullable=True)
     
-    # 结果和错误信息
-    result = Column(Text, nullable=True)  # JSON格式存储结果
+    # Result and error info
+    result = Column(Text, nullable=True)  # Store result in JSON format
     error = Column(Text, nullable=True)
     
-    # 时间戳
+    # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     
-    # 性能统计
-    duration = Column(Float, nullable=True)  # 执行时长（秒）
+    # Performance stats
+    duration = Column(Float, nullable=True)  # Execution duration (seconds)
     retry_count = Column(Integer, default=0)
     
-    # 关系定义
+    # Relationship
     user = relationship("UserModel", back_populates="tasks")
     
-    # 复合索引 - 优化查询
+    # Composite index - optimize queries
     __table_args__ = (
         Index('idx_user_created', 'user_id', 'created_at'),
         Index('idx_status_user', 'status', 'user_id'),
