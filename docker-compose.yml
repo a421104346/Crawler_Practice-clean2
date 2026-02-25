@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # PostgreSQL 数据库
+  # PostgreSQL database
   postgres:
     image: postgres:15-alpine
     container_name: crawler_postgres
@@ -21,7 +21,7 @@ services:
     networks:
       - crawler_network
 
-  # Redis 缓存和消息队列
+  # Redis cache and message queue
   redis:
     image: redis:7-alpine
     container_name: crawler_redis
@@ -38,7 +38,7 @@ services:
     networks:
       - crawler_network
 
-  # FastAPI 后端应用
+  # FastAPI backend application
   backend:
     build:
       context: .
@@ -58,7 +58,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./outputs:/app/outputs  # 挂载输出目录
+      - ./outputs:/app/outputs  # Mount output directory
     networks:
       - crawler_network
     restart: unless-stopped
@@ -86,7 +86,7 @@ services:
       - crawler_network
     restart: unless-stopped
 
-  # Celery Beat (定时任务调度器)
+  # Celery Beat (periodic task scheduler)
   celery_beat:
     build:
       context: .
@@ -104,7 +104,7 @@ services:
       - crawler_network
     restart: unless-stopped
 
-  # Flower - Celery 监控面板 (可选)
+  # Flower - Celery monitoring panel (optional)
   flower:
     build:
       context: .

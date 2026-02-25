@@ -16,7 +16,7 @@ def _normalize_city(location: str) -> str:
     loc = (location or "").strip()
     if not loc:
         return "Unknown"
-    # 常见格式： "City, Country" / "Country" / "Worldwide"
+    # Common formats: "City, Country" / "Country" / "Worldwide"
     if "," in loc:
         return loc.split(",", 1)[0].strip() or loc.strip()
     return loc
@@ -34,10 +34,10 @@ def fetch_jobs(category: str | None, search: str | None, timeout: int = 30) -> d
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="抓取公开招聘数据（Remotive API）并导出 CSV。")
-    parser.add_argument("--category", default=None, help="岗位分类，例如: software-dev / data / devops 等（可留空）")
-    parser.add_argument("--search", default=None, help="关键词搜索，例如: python / data analyst（可留空）")
-    parser.add_argument("--out", default=None, help="输出目录（默认: recruit_analysis/output）")
+    parser = argparse.ArgumentParser(description="Scrape public job data (Remotive API) and export to CSV.")
+    parser.add_argument("--category", default=None, help="Job category, e.g.: software-dev / data / devops (optional)")
+    parser.add_argument("--search", default=None, help="Keyword search, e.g.: python / data analyst (optional)")
+    parser.add_argument("--out", default=None, help="Output directory (default: recruit_analysis/output)")
     args = parser.parse_args()
 
     base_dir = Path(__file__).resolve().parent
@@ -53,7 +53,7 @@ def main() -> int:
 
     raw_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # 扁平化为 CSV（字段：职位名称、城市、薪资、发布日期、技能标签...）
+    # Flatten to CSV (fields: title, city, salary, publication date, skill tags...)
     rows: list[dict[str, Any]] = []
     for j in jobs:
         tags = j.get("tags") or []
@@ -73,7 +73,7 @@ def main() -> int:
             }
         )
 
-    # 不用 pandas 也能写 CSV（但后续分析会用 pandas）
+    # Can write CSV without pandas (but later analysis will use pandas)
     import csv
 
     with csv_path.open("w", encoding="utf-8-sig", newline="") as f:
@@ -81,7 +81,7 @@ def main() -> int:
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"抓取完成: {len(rows)} 条")
+    print(f"Scraping complete: {len(rows)} records")
     print(f"RAW: {raw_path}")
     print(f"CSV: {csv_path}")
     return 0

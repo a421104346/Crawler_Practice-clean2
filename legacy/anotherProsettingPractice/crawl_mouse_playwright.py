@@ -6,33 +6,33 @@ import csv
 import time
 import random
 
-# 设置标准输出编码为 utf-8
+# Set stdout encoding to utf-8
 sys.stdout.reconfigure(encoding='utf-8')
 
 input_file = os.path.join(os.path.dirname(__file__), "output", "cs2_players_list.txt")
 output_file = os.path.join(os.path.dirname(__file__), "output", "cs2_players_mice_playwright.csv")
 
 if not os.path.exists(input_file):
-    print(f"错误: 找不到输入文件 {input_file}")
+    print(f"Error: Input file not found {input_file}")
     sys.exit(1)
 
 with open(input_file, "r", encoding="utf-8") as f:
     players = [line.strip() for line in f if line.strip()]
 
-# 限制并发数：根据你的硬件配置 (96GB RAM + Ultra 7 CPU)，可以提高并发
-# 推荐: 10-15 个并发，每个浏览器大约消耗 500MB-1GB 内存
-MAX_WORKERS = 20  # 你可以根据实际情况调整到 15-20 
+# Limit concurrency: based on hardware (96GB RAM + Ultra 7 CPU), can increase concurrency
+# Recommended: 10-15 concurrent, each browser uses ~500MB-1GB RAM
+MAX_WORKERS = 20  # Adjust to 15-20 based on actual conditions
 
 fieldnames = ["Player", "Mouse Name", "DPI", "Sensitivity", "eDPI", "Zoom Sensitivity", "Hz", "Windows Sensitivity"]
 
 def process_player_batch(player_batch, worker_id):
-    """每个线程/进程启动一个独立的浏览器实例，处理一批选手"""
+    """Each thread/process launches an independent browser instance to process a batch of players"""
     results = []
     
     try:
         with sync_playwright() as p:
-            # 启动有头浏览器
-            # 每个 worker 都会弹出一个浏览器窗口
+            # Launch headed browser
+            # Each worker opens a browser window
             browser = p.chromium.launch(headless=False)
             context = browser.new_context()
             page = context.new_page()
@@ -44,11 +44,11 @@ def process_player_batch(player_batch, worker_id):
                     
                     page.goto(url, timeout=30000)
                     
-                    # 尝试等待鼠标区域加载
+                    # Try to wait for mouse section to load
                     try:
                         page.wait_for_selector("#cs2_mouse", timeout=5000)
                     except:
-                        # 如果超时，可能是没有该部分或者加载慢，继续尝试解析
+                        # If timeout, section may not exist or is loading slowly; continue parsing
                         pass
                     
                     result = {
@@ -62,21 +62,21 @@ def process_player_batch(player_batch, worker_id):
                         "Windows Sensitivity": "N/A"
                     }
                     
-                    # 1. 提取鼠标名称
-                    # 优先看图片 alt
+                    # 1. Extract mouse name
+                    # Prefer image alt
                     if page.query_selector("#cs2_mouse img"):
                         img_alt = page.eval_on_selector("#cs2_mouse img", "el => el.alt")
                         if img_alt:
                             result["Mouse Name"] = img_alt
                     
-                    # 备选：提取 h4
+                    # Fallback: extract h4
                     if result["Mouse Name"] == "N/A" and page.query_selector("#cs2_mouse h4"):
                         h4_text = page.eval_on_selector("#cs2_mouse h4", "el => el.innerText")
                         if h4_text:
                             result["Mouse Name"] = h4_text
 
-                    # 2. 提取表格数据
-                    # 使用 evaluate 执行 JS 提取所有行数据，效率更高
+                    # 2. Extract table data
+                    # Use evaluate to run JS for all row data, more efficient
                     table_data = page.evaluate("""() => {
                         const rows = document.querySelectorAll('#cs2_mouse table.settings tr');
                         const data = {};
@@ -105,7 +105,7 @@ def process_player_batch(player_batch, worker_id):
                     print(f"[Worker {worker_id}] Error processing {player_name}: {e}")
                     results.append({"Player": player_name, "Mouse Name": "Error"})
                 
-                # 随机休息，避免太快
+                # Random sleep to avoid being too fast
                 time.sleep(random.uniform(1, 2))
                 
             browser.close()
@@ -116,17 +116,17 @@ def process_player_batch(player_batch, worker_id):
     return results
 
 def chunk_list(lst, n):
-    """将列表分成 n 份"""
+    """Split list into n chunks"""
     return [lst[i::n] for i in range(n)]
 
 if __name__ == "__main__":
-    print(f"开始有头浏览器多线程抓取...")
-    print(f"总选手: {len(players)}, 并发数: {MAX_WORKERS}")
+    print(f"Starting multi-threaded headed browser scraping...")
+    print(f"Total players: {len(players)}, concurrency: {MAX_WORKERS}")
     
-    # 将任务分配给不同的 worker
+    # Distribute tasks to different workers
     batches = chunk_list(players, MAX_WORKERS)
     
-    # 写入表头
+    # Write headers
     with open(output_file, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -135,10 +135,10 @@ if __name__ == "__main__":
         futures = []
         for i, batch in enumerate(batches):
             if batch:
-                # 提交任务
+                # Submit tasks
                 futures.append(executor.submit(process_player_batch, batch, i+1))
         
-        # 收集结果并写入
+        # Collect results and write
         with open(output_file, "a", newline="", encoding="utf-8-sig") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             for future in concurrent.futures.as_completed(futures):
@@ -146,4 +146,4 @@ if __name__ == "__main__":
                 writer.writerows(results)
                 f.flush()
                 
-    print("全部完成！")
+    print("All done!")

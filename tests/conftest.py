@@ -1,17 +1,17 @@
 """
-Pytest 配置文件：共享的 fixtures 和测试配置
+Pytest configuration: shared fixtures and test config
 """
 import os
 import sys
 from pathlib import Path
 
-# 1. 在导入任何 backend 模块之前设置环境变量
-# 这样能确保 settings 和 database 使用测试配置
+# 1. Set environment variables before importing any backend modules
+# This ensures settings and database use test config
 os.environ["DEBUG"] = "False"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_crawler_tasks.db"
-os.environ["USE_CELERY"] = "False"  # 禁用 Celery，强制使用 BackgroundTasks
+os.environ["USE_CELERY"] = "False"  # Disable Celery, force BackgroundTasks
 
-# 将项目根目录添加到 Python 路径
+# Add project root to Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -19,24 +19,24 @@ import pytest
 from unittest.mock import patch
 from sqlalchemy import text
 
-# 现在才导入 backend 模块
+# Now import backend modules
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# 显式导入所有模型，确保它们在 Base.metadata 中注册
-# 注意：必须先设置环境变量，再导入这些，因为 database.py 会在导入时初始化 engine
+# Explicitly import all models to ensure they are registered in Base.metadata
+# Note: must set env vars before importing these, as database.py initializes engine on import
 from backend.models.task import TaskModel
 from backend.main import app
 from backend.database import Base, get_db
 from backend.config import settings
 
-# 测试数据库 URL
+# Test database URL
 TEST_DATABASE_URL = settings.DATABASE_URL
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_db():
-    """清理测试数据库文件"""
+    """Clean up test database file"""
     db_file = "./test_crawler_tasks.db"
     if os.path.exists(db_file):
         os.remove(db_file)
@@ -46,16 +46,16 @@ def cleanup_db():
 
 @pytest.fixture(scope="function")
 async def test_db():
-    """创建测试数据库"""
-    # 此时 settings.DATABASE_URL 应该已经是测试库了
-    # backend.database.engine 也应该指向测试库
+    """Create test database"""
+    # At this point settings.DATABASE_URL should point to test DB
+    # backend.database.engine should also point to test DB
     from backend.database import engine
     
-    # 创建所有表
+    # Create all tables
     async with engine.begin() as conn:
-        # 强制使用 TaskModel.metadata
+        # Force use of TaskModel.metadata
         await conn.run_sync(TaskModel.metadata.create_all)
-        # 双重保险
+        # Double insurance
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS tasks (
                 id VARCHAR(36) PRIMARY KEY, 
@@ -73,22 +73,22 @@ async def test_db():
             )
         """))
     
-    # 创建会话
-    # 直接使用 backend.database 里的 AsyncSessionLocal
-    # 因为它已经连接到测试 engine 了
+    # Create session
+    # Directly use AsyncSessionLocal from backend.database
+    # Since it's already connected to the test engine
     from backend.database import AsyncSessionLocal
     
     async with AsyncSessionLocal() as session:
         yield session
     
-    # 清理表（可选）
+    # Clean up tables (optional)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest.fixture(scope="function")
 def client(test_db):
-    """创建测试客户端"""
+    """Create test client"""
     
     async def override_get_db():
         yield test_db
@@ -103,8 +103,8 @@ def client(test_db):
 
 @pytest.fixture
 def auth_headers(client):
-    """获取认证 headers（登录后的 token）"""
-    # 登录获取 token
+    """Get authenticated headers (token after login)"""
+    # Login to get token
     response = client.post(
         "/api/auth/login",
         json={"username": "admin", "password": "admin123"}
@@ -114,7 +114,7 @@ def auth_headers(client):
         token = response.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
     else:
-        # 如果登录失败，先注册
+        # If login fails, register first
         client.post(
             "/api/auth/register",
             json={
@@ -124,7 +124,7 @@ def auth_headers(client):
             }
         )
         
-        # 再次登录
+        # Login again
         response = client.post(
             "/api/auth/login",
             json={"username": "admin", "password": "admin123"}

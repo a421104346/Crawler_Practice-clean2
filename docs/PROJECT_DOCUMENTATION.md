@@ -1,201 +1,201 @@
-# 全栈爬虫管理平台文档 (Crawler Management Platform Documentation)
+# Full-Stack Crawler Management Platform Documentation
 
-本文档整合了项目的技术架构、部署指南、开发规范及阶段性成果，旨在为开发者提供全方位的参考。
-
----
-
-## 📚 目录 (Table of Contents)
-
-1. [项目概览 (Overview)](#1-项目概览-overview)
-2. [技术架构 (Architecture)](#2-技术架构-architecture)
-3. [快速开始 (Quick Start)](#3-快速开始-quick-start)
-4. [核心功能与API (Features & API)](#4-核心功能与api-features--api)
-5. [开发规范 (Development Guidelines)](#5-开发规范-development-guidelines)
-6. [部署指南 (Deployment)](#6-部署指南-deployment)
-7. [项目路线图与阶段回顾 (Roadmap & Phases)](#7-项目路线图与阶段回顾-roadmap--phases)
+This document consolidates the project's technical architecture, deployment guide, development guidelines, and milestone summaries, providing a comprehensive reference for developers.
 
 ---
 
-## 1. 项目概览 (Overview)
+## 📚 Table of Contents
 
-### 简介
-本项目是一个基于 **FastAPI + React + TypeScript** 的全栈异步爬虫管理平台，旨在提供统一的爬虫任务调度、实时状态追踪及权限管理能力。适用于需要集中管理多个爬虫脚本、监控执行进度并进行结果归档的场景。
-
-### 核心特性
-- **异步任务**：支持后台任务队列（BackgroundTasks / Celery），实现非阻塞爬取。
-- **实时进度**：通过 WebSocket 实时推送任务日志与进度条。
-- **权限管理**：集成 JWT 认证，支持普通用户与管理员权限分级。
-- **可扩展性**：基于 `BaseCrawler` 抽象类，轻松接入新爬虫。
-- **现代化前端**：React 18 + Tailwind CSS，提供直观的任务看板。
+1. [Overview](#1-overview)
+2. [Architecture](#2-architecture)
+3. [Quick Start](#3-quick-start)
+4. [Features & API](#4-features--api)
+5. [Development Guidelines](#5-development-guidelines)
+6. [Deployment](#6-deployment)
+7. [Roadmap & Phases](#7-roadmap--phases)
 
 ---
 
-## 2. 技术架构 (Architecture)
+## 1. Overview
 
-### 技术栈
-| 领域 | 技术选型 | 说明 |
+### Introduction
+This project is a full-stack asynchronous crawler management platform built with **FastAPI + React + TypeScript**, designed to provide unified crawler task scheduling, real-time status tracking, and permission management. It is suitable for scenarios requiring centralized management of multiple crawler scripts, monitoring execution progress, and archiving results.
+
+### Core Features
+- **Async Tasks**: Supports background task queues (BackgroundTasks / Celery) for non-blocking crawling.
+- **Real-time Progress**: Pushes task logs and progress bars in real time via WebSocket.
+- **Permission Management**: Integrates JWT authentication with role-based access control for regular users and administrators.
+- **Extensibility**: Based on the `BaseCrawler` abstract class, making it easy to integrate new crawlers.
+- **Modern Frontend**: React 18 + Tailwind CSS, providing an intuitive task dashboard.
+
+---
+
+## 2. Architecture
+
+### Tech Stack
+| Domain | Technology | Description |
 | :--- | :--- | :--- |
-| **后端** | Python 3.10+, FastAPI | 异步 Web 框架，高性能 API |
-| **数据库** | SQLite (Dev) / PostgreSQL (Prod) | 使用 SQLAlchemy + Asyncpg 异步驱动 |
-| **前端** | React 18, TypeScript, Vite | 现代化 SPA 开发体验 |
-| **任务队列** | BackgroundTasks / Celery + Redis | 灵活切换轻量级与分布式队列 |
-| **网络请求** | httpx | 纯异步 HTTP 客户端 |
-| **部署** | Docker, Docker Compose | 容器化一键部署 |
+| **Backend** | Python 3.10+, FastAPI | Async web framework, high-performance API |
+| **Database** | SQLite (Dev) / PostgreSQL (Prod) | Using SQLAlchemy + Asyncpg async driver |
+| **Frontend** | React 18, TypeScript, Vite | Modern SPA development experience |
+| **Task Queue** | BackgroundTasks / Celery + Redis | Flexible switch between lightweight and distributed queues |
+| **HTTP Requests** | httpx | Pure async HTTP client |
+| **Deployment** | Docker, Docker Compose | Containerized one-click deployment |
 
-### 系统架构图
+### System Architecture Diagram
 ```mermaid
 graph TD
-    User[用户 (React Frontend)] -->|HTTP/WebSocket| API[FastAPI Backend]
+    User[User (React Frontend)] -->|HTTP/WebSocket| API[FastAPI Backend]
     API -->|CRUD| DB[(PostgreSQL/SQLite)]
     API -->|Push| WS[WebSocket Manager]
     API -->|Dispatch| Queue[Task Queue (Celery/BgTasks)]
     
     subgraph "Worker Layer"
     Queue -->|Execute| Crawler[BaseCrawler Implementation]
-    Crawler -->|Fetch| Target[目标网站]
+    Crawler -->|Fetch| Target[Target Website]
     Crawler -->|Update Progress| API
     end
 ```
 
 ---
 
-## 3. 快速开始 (Quick Start)
+## 3. Quick Start
 
-### 环境要求
+### Requirements
 - Python 3.10+
 - Node.js 18+
-- Docker (可选)
+- Docker (optional)
 
-### 本地开发启动
+### Local Development Setup
 
-#### 1. 后端启动
+#### 1. Start Backend
 ```bash
 cd backend
-# 创建虚拟环境（可选）
+# Create virtual environment (optional)
 python -m venv venv
-# 激活环境: Windows: .\venv\Scripts\activate | Mac/Linux: source venv/bin/activate
+# Activate: Windows: .\venv\Scripts\activate | Mac/Linux: source venv/bin/activate
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 
-# 初始化数据库与管理员
+# Initialize database and admin
 set ADMIN_USERNAME=admin
 set ADMIN_PASSWORD=admin
 python create_admin.py
 
-# 启动服务
+# Start server
 python main.py
-# 访问: http://localhost:8000/docs
+# Visit: http://localhost:8000/docs
 ```
 
-#### 2. 前端启动
+#### 2. Start Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
-# 访问: http://localhost:5173
+# Visit: http://localhost:5173
 ```
 
-### Docker 启动 (推荐)
+### Docker Setup (Recommended)
 ```bash
-# 复制环境变量
+# Copy environment variables
 cp docs/env.example.txt .env
 
-# 启动所有服务
+# Start all services
 docker compose up --build
 ```
 
 ---
 
-## 4. 核心功能与API (Features & API)
+## 4. Features & API
 
-### 4.1 认证模块 (Auth)
-- **注册/登录**: JWT Token 签发与验证。
-- **权限控制**: 区分普通用户与管理员，通过 `Depends(get_current_user)` 注入依赖。
+### 4.1 Authentication Module
+- **Register/Login**: JWT Token issuance and verification.
+- **Access Control**: Distinguishes between regular users and administrators via `Depends(get_current_user)` dependency injection.
 
-### 4.2 爬虫模块 (Crawlers)
-- **BaseCrawler**: 所有爬虫均继承自 `core/base_crawler.py`。
-- **统一接口**: `run(params)` 方法统一入口，支持参数校验。
-- **已有爬虫**: Yahoo Finance, Jobs, Movies 等示例。
+### 4.2 Crawler Module
+- **BaseCrawler**: All crawlers inherit from `core/base_crawler.py`.
+- **Unified Interface**: The `run(params)` method provides a unified entry point with parameter validation.
+- **Existing Crawlers**: Yahoo Finance, Jobs, Movies, and other examples.
 
-### 4.3 任务管理 (Tasks)
-- **任务创建**: 用户提交爬虫请求 -> 生成 Task ID -> 进入队列。
-- **状态流转**: `pending` -> `running` -> `completed` / `failed`。
-- **进度回调**: 爬虫内部通过 `progress_callback` 实时更新 DB 与 WebSocket。
+### 4.3 Task Management
+- **Task Creation**: User submits crawler request -> generates Task ID -> enters queue.
+- **Status Flow**: `pending` -> `running` -> `completed` / `failed`.
+- **Progress Callback**: Crawlers internally update DB and WebSocket in real time via `progress_callback`.
 
-### 4.4 监控 (Monitoring)
-- **健康检查**: `/api/monitoring/health` 检查 DB、Redis、Celery 连接状态。
-- **系统指标**: CPU、内存、Uptime 统计（仅管理员可见）。
+### 4.4 Monitoring
+- **Health Check**: `/api/monitoring/health` checks DB, Redis, and Celery connection status.
+- **System Metrics**: CPU, memory, uptime statistics (admin-only).
 
 ---
 
-## 5. 开发规范 (Development Guidelines)
+## 5. Development Guidelines
 
-### 代码风格
-- **Python**: 遵循 PEP8，使用 Type Hints，Google-style Docstrings。
-- **TypeScript**: 严格模式 (`strict: true`)，禁止 `any`，使用 Interface 定义数据结构。
+### Code Style
+- **Python**: Follows PEP8, uses Type Hints, Google-style Docstrings.
+- **TypeScript**: Strict mode (`strict: true`), no `any`, use Interface for data structure definitions.
 
-### 目录结构规范
+### Directory Structure
 ```
 backend/
-  ├── core/          # 核心抽象 (BaseCrawler)
-  ├── crawlers/      # 具体爬虫实现
-  ├── routers/       # API 路由
-  ├── schemas/       # Pydantic 模型
-  ├── crud/          # 数据库操作
-  └── tasks/         # Celery/后台任务定义
+  ├── core/          # Core abstractions (BaseCrawler)
+  ├── crawlers/      # Crawler implementations
+  ├── routers/       # API routes
+  ├── schemas/       # Pydantic models
+  ├── crud/          # Database operations
+  └── tasks/         # Celery/background task definitions
 frontend/
-  ├── src/components # UI 组件
-  ├── src/hooks      # 自定义 Hooks
-  └── src/services   # API 客户端
+  ├── src/components # UI components
+  ├── src/hooks      # Custom Hooks
+  └── src/services   # API client
 ```
 
-### 提交流程
-1. 分支命名: `feat/xxx`, `fix/xxx`
-2. 提交信息: `[Phase X] feat: message`
-3. 确保测试通过: `pytest tests/`
+### Commit Workflow
+1. Branch naming: `feat/xxx`, `fix/xxx`
+2. Commit message: `[Phase X] feat: message`
+3. Ensure tests pass: `pytest tests/`
 
 ---
 
-## 6. 部署指南 (Deployment)
+## 6. Deployment
 
-### 生产环境配置
-1. **数据库迁移**: 切换至 PostgreSQL。
-   - 修改 `.env`: `DATABASE_URL=postgresql+asyncpg://...`
-2. **任务队列**: 启用 Celery + Redis。
-   - 设置 `USE_CELERY=true`
-3. **反向代理**: 使用 Nginx 代理 API 与前端静态文件。
+### Production Configuration
+1. **Database Migration**: Switch to PostgreSQL.
+   - Update `.env`: `DATABASE_URL=postgresql+asyncpg://...`
+2. **Task Queue**: Enable Celery + Redis.
+   - Set `USE_CELERY=true`
+3. **Reverse Proxy**: Use Nginx to proxy API and frontend static files.
 
-### Docker Compose 编排
-- `docker-compose.yml`: 包含 Backend, Frontend (Nginx), Postgres, Redis, Celery Worker, Flower。
-- **数据持久化**: 挂载 Volume 保证 DB 数据不丢失。
-
----
-
-## 7. 项目路线图与阶段回顾 (Roadmap & Phases)
-
-### Phase 1: 异步基础与 FastAPI (已完成)
-- [x] 搭建 FastAPI 骨架
-- [x] 实现 BaseCrawler 与异步封装
-- [x] WebSocket 实时通信
-- [x] JWT 认证体系
-
-### Phase 2: 生产级增强 (已完成)
-- [x] 集成 PostgreSQL
-- [x] 引入 Celery + Redis 任务队列
-- [x] Docker 容器化部署
-- [x] 系统监控与健康检查
-
-### Phase 3: 全栈交互 (已完成)
-- [x] React 前端开发
-- [x] 任务列表与详情页
-- [x] 实时日志与进度条组件
-- [x] 移动端响应式适配
-
-### 未来规划
-- **Phase 4**: 分布式爬虫集群与可视化报表
-- **Phase 5**: AI 辅助解析与反爬策略集成
+### Docker Compose Orchestration
+- `docker-compose.yml`: Includes Backend, Frontend (Nginx), Postgres, Redis, Celery Worker, Flower.
+- **Data Persistence**: Mounted volumes ensure DB data is not lost.
 
 ---
 
-*文档最后更新时间: 2026-01-16*
+## 7. Roadmap & Phases
+
+### Phase 1: Async Foundation & FastAPI (Completed)
+- [x] Set up FastAPI skeleton
+- [x] Implement BaseCrawler with async wrapper
+- [x] WebSocket real-time communication
+- [x] JWT authentication system
+
+### Phase 2: Production-Grade Enhancements (Completed)
+- [x] Integrate PostgreSQL
+- [x] Introduce Celery + Redis task queue
+- [x] Docker containerized deployment
+- [x] System monitoring and health checks
+
+### Phase 3: Full-Stack Integration (Completed)
+- [x] React frontend development
+- [x] Task list and detail pages
+- [x] Real-time log and progress bar components
+- [x] Mobile responsive design
+
+### Future Plans
+- **Phase 4**: Distributed crawler cluster and visual reporting
+- **Phase 5**: AI-assisted parsing and anti-crawling strategy integration
+
+---
+
+*Last updated: 2026-01-16*

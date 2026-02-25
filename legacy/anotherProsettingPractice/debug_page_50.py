@@ -11,30 +11,30 @@ headers = {
 }
 
 try:
-    print(f"请求: {url}")
+    print(f"Requesting: {url}")
     response = requests.get(url, headers=headers)
     
     if response.status_code == 200:
-        # 保存 HTML
+        # Save HTML
         debug_file = "anotherProsettingPractice/output/debug_page_50.html"
         with open(debug_file, "w", encoding="utf-8") as f:
             f.write(response.text)
-        print(f"HTML 已保存到 {debug_file}")
+        print(f"HTML saved to {debug_file}")
 
         soup = BeautifulSoup(response.text, "html.parser")
         
-        # 计数
+        # Count results
         links = soup.select("div.player_heading-wrapper h4 a")
-        print(f"找到 {len(links)} 个选手链接:")
+        print(f"Found {len(links)} player links:")
         for i, link in enumerate(links):
             print(f"{i+1}. {link.get_text(strip=True)}")
             
-        # 尝试查找所有的 h4，看看是否漏掉了没有 wrapper 的
+        # Try finding all h4 tags to check if any without wrapper are missed
         all_h4_links = soup.select("h4 a")
-        print(f"\n检查所有 h4 a 标签数量: {len(all_h4_links)}")
+        print(f"\nChecking all h4 a tag count: {len(all_h4_links)}")
             
     else:
-        print(f"请求失败: {response.status_code}")
+        print(f"Request failed: {response.status_code}")
 
 except Exception as e:
-    print(f"错误: {e}")
+    print(f"Error: {e}")

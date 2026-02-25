@@ -1,12 +1,12 @@
 import sys
 import os
 
-# 将项目根目录添加到 python path，这样才能导入 core 和 crawlers 模块
+# Add project root to python path so core and crawlers modules can be imported
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from crawlers.yahoo import YahooCrawler
 
-# 实例化一次，自动处理所有脏活（获取 Cookie，获取 Crumb，伪装 UA）
+# Instantiate once, automatically handles all dirty work (get Cookie, get Crumb, fake UA)
 print("Starting Crawler Bot (Refactored)...")
 bot = YahooCrawler()
 
@@ -19,7 +19,7 @@ for symbol in stocks:
     
     if data:
         try:
-            # 解析 Yahoo 返回的复杂 JSON 结构
+            # Parse Yahoo's complex JSON response structure
             result = data['chart']['result'][0]
             meta = result['meta']
             price = meta['regularMarketPrice']

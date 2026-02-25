@@ -1,14 +1,14 @@
 """
-快速测试脚本：验证应用是否能正常启动
+Quick test script: verify the application starts correctly
 """
 import sys
 import os
 
-# 添加项目根目录到路径
+# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_imports():
-    """测试所有导入是否正常"""
+    """Test that all imports work correctly"""
     print("Testing imports...")
     
     try:
@@ -47,24 +47,24 @@ def test_imports():
 
 
 def test_crawler_service():
-    """测试爬虫服务"""
+    """Test crawler service"""
     print("\n\nTesting crawler service...")
     
     try:
         from backend.services.crawler_service import crawler_service
         
-        # 列出所有爬虫
+        # List all crawlers
         crawlers = crawler_service.list_crawlers()
         print(f"[OK] Found {len(crawlers)} crawlers:")
         for crawler in crawlers:
             print(f"  - {crawler.name}: {crawler.display_name}")
         
-        # 测试获取爬虫信息
+        # Test getting crawler info
         yahoo_info = crawler_service.get_crawler_info("yahoo")
         if yahoo_info:
             print(f"[OK] Yahoo crawler info: {yahoo_info.name}")
         
-        # 测试创建爬虫实例
+        # Test creating crawler instance
         yahoo_crawler = crawler_service.get_crawler_instance("yahoo")
         print(f"[OK] Yahoo crawler instance created: {type(yahoo_crawler).__name__}")
         
@@ -79,7 +79,7 @@ def test_crawler_service():
 
 
 def test_api_routes():
-    """测试 API 路由"""
+    """Test API routes"""
     print("\n\nTesting API routes...")
     
     try:
@@ -88,23 +88,23 @@ def test_api_routes():
         
         client = TestClient(app)
         
-        # 测试根路径
+        # Test root endpoint
         response = client.get("/")
         assert response.status_code == 200
         print(f"[OK] Root endpoint: {response.json()['message']}")
         
-        # 测试健康检查
+        # Test health check
         response = client.get("/health")
         assert response.status_code == 200
         print(f"[OK] Health check: {response.json()['status']}")
         
-        # 测试获取爬虫列表
+        # Test getting crawler list
         response = client.get("/api/crawlers")
         assert response.status_code == 200
         crawlers = response.json()
         print(f"[OK] Crawlers list: {len(crawlers)} crawlers available")
         
-        # 测试登录
+        # Test login
         response = client.post(
             "/api/auth/login",
             json={"username": "admin", "password": "admin123"}
@@ -112,7 +112,7 @@ def test_api_routes():
         assert response.status_code == 200
         print(f"[OK] Login successful: token received")
         
-        # 测试获取任务列表
+        # Test getting task list
         response = client.get("/api/tasks")
         assert response.status_code == 200
         print(f"[OK] Tasks list: {response.json()['total']} tasks")
@@ -132,13 +132,13 @@ if __name__ == "__main__":
     print("Phase 1 Quick Test")
     print("="*60)
     
-    # 运行测试
+    # Run tests
     results = []
     results.append(("Imports", test_imports()))
     results.append(("Crawler Service", test_crawler_service()))
     results.append(("API Routes", test_api_routes()))
     
-    # 打印总结
+    # Print summary
     print("\n" + "="*60)
     print("Test Summary")
     print("="*60)

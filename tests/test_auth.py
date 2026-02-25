@@ -1,5 +1,5 @@
 """
-认证系统测试
+Authentication system tests
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -9,7 +9,7 @@ client = TestClient(app)
 
 
 def test_register_new_user():
-    """测试注册新用户"""
+    """Test register new user"""
     response = client.post(
         "/api/auth/register",
         json={
@@ -27,8 +27,8 @@ def test_register_new_user():
 
 
 def test_register_duplicate_username():
-    """测试注册重复用户名"""
-    # 第一次注册
+    """Test register duplicate username"""
+    # First registration
     client.post(
         "/api/auth/register",
         json={
@@ -38,7 +38,7 @@ def test_register_duplicate_username():
         }
     )
     
-    # 第二次注册相同用户名
+    # Second registration with same username
     response = client.post(
         "/api/auth/register",
         json={
@@ -53,8 +53,8 @@ def test_register_duplicate_username():
 
 
 def test_login_success():
-    """测试成功登录"""
-    # 默认用户：admin / admin123
+    """Test successful login"""
+    # Default user: admin / admin123
     response = client.post(
         "/api/auth/login",
         json={
@@ -71,7 +71,7 @@ def test_login_success():
 
 
 def test_login_invalid_password():
-    """测试错误密码登录"""
+    """Test login with invalid password"""
     response = client.post(
         "/api/auth/login",
         json={
@@ -85,7 +85,7 @@ def test_login_invalid_password():
 
 
 def test_login_nonexistent_user():
-    """测试不存在的用户登录"""
+    """Test login with nonexistent user"""
     response = client.post(
         "/api/auth/login",
         json={
@@ -98,15 +98,15 @@ def test_login_nonexistent_user():
 
 
 def test_get_current_user():
-    """测试获取当前用户信息"""
-    # 先登录
+    """Test get current user info"""
+    # Login first
     login_response = client.post(
         "/api/auth/login",
         json={"username": "admin", "password": "admin123"}
     )
     token = login_response.json()["access_token"]
     
-    # 获取用户信息
+    # Get user info
     response = client.get(
         "/api/auth/me",
         headers={"Authorization": f"Bearer {token}"}
@@ -118,13 +118,13 @@ def test_get_current_user():
 
 
 def test_get_current_user_without_token():
-    """测试未认证访问受保护的端点"""
+    """Test unauthenticated access to protected endpoint"""
     response = client.get("/api/auth/me")
     assert response.status_code == 403  # Forbidden
 
 
 def test_get_current_user_with_invalid_token():
-    """测试使用无效 token 访问"""
+    """Test access with invalid token"""
     response = client.get(
         "/api/auth/me",
         headers={"Authorization": "Bearer invalid_token"}
@@ -133,15 +133,15 @@ def test_get_current_user_with_invalid_token():
 
 
 def test_logout():
-    """测试登出"""
-    # 先登录
+    """Test logout"""
+    # Login first
     login_response = client.post(
         "/api/auth/login",
         json={"username": "admin", "password": "admin123"}
     )
     token = login_response.json()["access_token"]
     
-    # 登出
+    # Logout
     response = client.post(
         "/api/auth/logout",
         headers={"Authorization": f"Bearer {token}"}

@@ -2,8 +2,8 @@ import requests
 from fake_useragent import UserAgent
 import json
 
-# 目标 URL：Yahoo Finance 的 Quote API (获取 AAPL 的基本数据)
-# 这个接口比解析 HTML 更直接
+# Target URL: Yahoo Finance Quote API (get basic AAPL data)
+# This API is more direct than parsing HTML
 url = "https://query1.finance.yahoo.com/v8/finance/chart/AAPL"
 
 print(f"Trying to access: {url}\n")

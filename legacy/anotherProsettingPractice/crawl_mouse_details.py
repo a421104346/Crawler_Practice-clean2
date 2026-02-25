@@ -7,29 +7,29 @@ import csv
 import time
 import random
 
-# 设置标准输出编码为 utf-8
+# Set stdout encoding to utf-8
 sys.stdout.reconfigure(encoding='utf-8')
 
-# 配置文件路径
+# Configure file paths
 input_file = os.path.join(os.path.dirname(__file__), "output", "cs2_players_list.txt")
 output_file = os.path.join(os.path.dirname(__file__), "output", "cs2_players_mice_detailed.csv")
 
-# 确保输入文件存在
+# Ensure input file exists
 if not os.path.exists(input_file):
-    print(f"错误: 找不到输入文件 {input_file}")
+    print(f"Error: Input file not found {input_file}")
     sys.exit(1)
 
-# 读取选手名单
+# Read player list
 with open(input_file, "r", encoding="utf-8") as f:
     players = [line.strip() for line in f if line.strip()]
 
-print(f"读取到 {len(players)} 名选手。")
+print(f"Read {len(players)} players.")
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 }
 
-# 目标字段 (移除 Status)
+# Target fields (Status removed)
 fieldnames = ["Player", "Mouse Name", "DPI", "Sensitivity", "eDPI", "Zoom Sensitivity", "Hz", "Windows Sensitivity"]
 
 def crawl_player_mouse_details(player_name):
@@ -54,21 +54,21 @@ def crawl_player_mouse_details(player_name):
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # 查找 id="cs2_mouse"
+            # Find id="cs2_mouse"
             mouse_section = soup.find(id="cs2_mouse")
             if mouse_section:
-                # 1. 查找鼠标名称
+                # 1. Find mouse name
                 img = mouse_section.find("img")
                 if img and img.get("alt"):
                     result["Mouse Name"] = img.get("alt")
                 else:
-                    # 如果没有图片，尝试查找 h4
+                    # If no image, try to find h4
                     h4 = mouse_section.find("h4")
                     if h4:
                         result["Mouse Name"] = h4.get_text(strip=True)
                 
-                # 2. 查找表格并提取参数
-                # 根据 probe 结果，表格行是 tr -> th(Key) + td(Value)
+                # 2. Find table and extract parameters
+                # Based on probe results, table rows are tr -> th(Key) + td(Value)
                 settings_table = mouse_section.find("table", class_="settings")
                 if settings_table:
                     rows = settings_table.find_all("tr")
@@ -96,17 +96,17 @@ def crawl_player_mouse_details(player_name):
             return result
             
         else:
-            # 即使出错也返回空数据结构
+            # Return empty data structure even on error
             return result
             
     except Exception:
-        # 即使出错也返回空数据结构
+        # Return empty data structure even on error
         return result
 
-print(f"开始抓取详细鼠标参数，使用 20 个线程...")
-print(f"结果将保存到: {output_file}")
+print(f"Starting detailed mouse parameter scraping with 20 threads...")
+print(f"Results will be saved to: {output_file}")
 
-# 写入表头
+# Write headers
 with open(output_file, "w", newline="", encoding="utf-8-sig") as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
@@ -128,9 +128,9 @@ with open(output_file, "a", newline="", encoding="utf-8-sig") as csvfile:
                 
                 total_done += 1
                 if total_done % 10 == 0:
-                    print(f"进度: {total_done}/{len(players)} - {data['Player']}: DPI={data['DPI']}, Sens={data['Sensitivity']}")
+                    print(f"Progress: {total_done}/{len(players)} - {data['Player']}: DPI={data['DPI']}, Sens={data['Sensitivity']}")
                     
             except Exception as exc:
-                print(f"异常: {exc}")
+                print(f"Exception: {exc}")
 
-print("抓取完成！")
+print("Scraping complete!")

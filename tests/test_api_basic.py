@@ -1,5 +1,5 @@
 """
-基础 API 测试
+Basic API tests
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -9,7 +9,7 @@ client = TestClient(app)
 
 
 def test_root_endpoint():
-    """测试根路径"""
+    """Test root endpoint"""
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
@@ -19,7 +19,7 @@ def test_root_endpoint():
 
 
 def test_health_check():
-    """测试健康检查端点"""
+    """Test health check endpoint"""
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
@@ -27,15 +27,15 @@ def test_health_check():
 
 
 def test_list_crawlers():
-    """测试获取爬虫列表"""
+    """Test get crawler list"""
     response = client.get("/api/crawlers")
     assert response.status_code == 200
     crawlers = response.json()
     
-    # 应该至少有 3 个爬虫
+    # Should have at least 3 crawlers
     assert len(crawlers) >= 3
     
-    # 检查爬虫名称
+    # Check crawler names
     crawler_names = [c["name"] for c in crawlers]
     assert "yahoo" in crawler_names
     assert "movies" in crawler_names
@@ -43,7 +43,7 @@ def test_list_crawlers():
 
 
 def test_get_crawler_info():
-    """测试获取特定爬虫信息"""
+    """Test get specific crawler info"""
     response = client.get("/api/crawlers/yahoo")
     assert response.status_code == 200
     
@@ -54,13 +54,13 @@ def test_get_crawler_info():
 
 
 def test_get_nonexistent_crawler():
-    """测试获取不存在的爬虫"""
+    """Test get nonexistent crawler"""
     response = client.get("/api/crawlers/nonexistent")
     assert response.status_code == 404
 
 
 def test_api_docs_available():
-    """测试 API 文档可访问"""
+    """Test API docs are accessible"""
     response = client.get("/docs")
     assert response.status_code == 200
     

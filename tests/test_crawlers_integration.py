@@ -1,6 +1,6 @@
 """
-爬虫集成测试（需要实际网络连接）
-可以使用 pytest -m "not slow" 跳过这些测试
+Crawler integration tests (requires actual network connection)
+Use pytest -m "not slow" to skip these tests
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -12,7 +12,7 @@ client = TestClient(app)
 
 @pytest.mark.slow
 def test_run_yahoo_crawler():
-    """测试运行 Yahoo 爬虫"""
+    """Test running Yahoo crawler"""
     response = client.post(
         "/api/crawlers/yahoo/run",
         json={"symbol": "AAPL"}
@@ -23,11 +23,11 @@ def test_run_yahoo_crawler():
     assert data["status"] == "success"
     assert "task_id" in data
     
-    # 等待任务完成
+    # Wait for task to complete
     task_id = data["task_id"]
-    time.sleep(5)  # 等待5秒让任务完成
+    time.sleep(5)  # Wait 5 seconds for task to complete
     
-    # 检查任务状态
+    # Check task status
     task_response = client.get(f"/api/tasks/{task_id}")
     assert task_response.status_code == 200
     
@@ -38,10 +38,10 @@ def test_run_yahoo_crawler():
 
 @pytest.mark.slow
 def test_run_movies_crawler():
-    """测试运行豆瓣电影爬虫"""
+    """Test running movies crawler"""
     response = client.post(
         "/api/crawlers/movies/run",
-        json={"max_pages": 1}  # 只爬1页，快速测试
+        json={"max_pages": 1}  # Only crawl 1 page for quick test
     )
     
     assert response.status_code == 200
@@ -51,7 +51,7 @@ def test_run_movies_crawler():
 
 @pytest.mark.slow
 def test_run_jobs_crawler():
-    """测试运行招聘爬虫"""
+    """Test running jobs crawler"""
     response = client.post(
         "/api/crawlers/jobs/run",
         json={"search": "python"}
@@ -63,7 +63,7 @@ def test_run_jobs_crawler():
 
 
 def test_run_invalid_crawler():
-    """测试运行不存在的爬虫"""
+    """Test running nonexistent crawler"""
     response = client.post(
         "/api/crawlers/invalid/run",
         json={}
@@ -73,11 +73,11 @@ def test_run_invalid_crawler():
 
 
 def test_run_yahoo_without_symbol():
-    """测试运行 Yahoo 爬虫但不提供 symbol 参数"""
+    """Test running Yahoo crawler without symbol parameter"""
     response = client.post(
         "/api/crawlers/yahoo/run",
         json={}
     )
     
-    # 应该返回错误
+    # Should return error
     assert response.status_code in [400, 500]

@@ -1,10 +1,10 @@
 version: '3.8'
 
-# 开发环境 Docker Compose 配置
-# 使用方法：docker-compose -f docker-compose.dev.yml up
+# Development environment Docker Compose configuration
+# Usage: docker-compose -f docker-compose.dev.yml up
 
 services:
-  # PostgreSQL 数据库（开发）
+  # PostgreSQL database (development)
   postgres:
     image: postgres:15-alpine
     container_name: crawler_postgres_dev
@@ -15,20 +15,20 @@ services:
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # 使用不同端口避免冲突
+      - "5433:5432"  # Use different port to avoid conflicts
     networks:
       - crawler_dev_network
 
-  # Redis（开发）
+  # Redis (development)
   redis:
     image: redis:7-alpine
     container_name: crawler_redis_dev
     ports:
-      - "6380:6379"  # 使用不同端口
+      - "6380:6379"  # Use different port
     networks:
       - crawler_dev_network
 
-  # Backend（开发模式 - 热重载）
+  # Backend (development mode - hot reload)
   backend:
     build:
       context: .
@@ -39,14 +39,14 @@ services:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dev_user}:${POSTGRES_PASSWORD:-CHANGE_ME}@postgres:5432/${POSTGRES_DB:-crawler_dev_db}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - DEBUG=${DEBUG:-true}
-      - USE_CELERY=${USE_CELERY:-false}  # 开发环境可以不用 Celery
+      - USE_CELERY=${USE_CELERY:-false}  # Celery is optional in development
     depends_on:
       - postgres
       - redis
     ports:
-      - "8001:8000"  # 使用不同端口
+      - "8001:8000"  # Use different port
     volumes:
-      - ./backend:/app/backend:ro  # 只读挂载，启用热重载
+      - ./backend:/app/backend:ro  # Read-only mount, enables hot reload
       - ./core:/app/core:ro
       - ./crawlers:/app/crawlers:ro
       - ./outputs:/app/outputs

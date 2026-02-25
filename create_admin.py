@@ -4,7 +4,7 @@ import os
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 
-# 添加项目根目录到路径
+# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from backend.database import AsyncSessionLocal
@@ -13,7 +13,7 @@ from sqlalchemy import select
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# 读取 .env（项目根目录或 backend 目录）
+# Read .env (project root or backend directory)
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.join(PROJECT_ROOT, "backend")
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
@@ -22,7 +22,7 @@ load_dotenv(os.path.join(BACKEND_DIR, ".env"))
 async def create_admin():
     print("Creating admin user...")
     
-    # 从环境变量读取，避免硬编码默认口令
+    # Read from environment variables, avoid hardcoding default passwords
     username = os.getenv("ADMIN_USERNAME")
     email = os.getenv("ADMIN_EMAIL")
     password = os.getenv("ADMIN_PASSWORD")

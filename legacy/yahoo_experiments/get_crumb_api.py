@@ -1,10 +1,10 @@
 import requests
 from fake_useragent import UserAgent
 
-# 1. 初始化 Session
+# 1. Initialize Session
 session = requests.Session()
 
-# 必须使用非常标准的 PC 浏览器 UA，Yahoo 对 UA 校验很严格
+# Must use a standard PC browser UA; Yahoo validates UA strictly
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -19,8 +19,8 @@ headers = {
 session.headers.update(headers)
 
 print(">>> Step 1: Visiting Homepage to initialize session/cookies...")
-# 有时候访问 fcc 页面更能强制设置 cookie
-# 但通常主页就够了
+# Sometimes visiting the fcc page forces cookie setup more reliably
+# But usually the homepage is sufficient
 homepage_url = 'https://finance.yahoo.com' 
 
 try:
@@ -28,11 +28,11 @@ try:
     print(f"Homepage Status: {resp.status_code}")
     print(f"Cookies after homepage: {list(session.cookies.get_dict().keys())}")
     
-    # 2. 尝试从 API 获取 Crumb
+    # 2. Try to get Crumb from API
     print("\n>>> Step 2: Fetching Crumb from API...")
     crumb_url = 'https://query1.finance.yahoo.com/v1/test/getcrumb'
     
-    # 注意：请求 Crumb 时，Referer 很重要
+    # Note: Referer is important when requesting the Crumb
     crumb_headers = {
         'Referer': homepage_url
     }

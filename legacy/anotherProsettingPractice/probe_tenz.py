@@ -13,23 +13,23 @@ try:
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    # 查找 id="cs2_mouse"
+    # Find id="cs2_mouse"
     mouse_section = soup.find(id="cs2_mouse")
     if mouse_section:
         print("=== ID 'cs2_mouse' Content Start ===")
-        # 打印前 2000 个字符，应该能看到表格结构
+        # Print first 2000 chars to see table structure
         print(mouse_section.prettify()[:2000])
         print("=== ID 'cs2_mouse' Content End ===")
         
-        # 尝试查找里面的所有表格
+        # Try to find all tables inside
         tables = mouse_section.find_all("table")
-        print(f"\n找到 {len(tables)} 个表格在鼠标区域内。")
+        print(f"\nFound {len(tables)} tables in the mouse section.")
         for i, table in enumerate(tables):
-            print(f"表格 {i+1} class: {table.get('class')}")
-            print(table.prettify()[:500]) # 打印表格前几行
+            print(f"Table {i+1} class: {table.get('class')}")
+            print(table.prettify()[:500]) # Print first few rows of the table
             
     else:
-        print("未找到 id='cs2_mouse'")
+        print("id='cs2_mouse' not found")
 
 except Exception as e:
     print(e)

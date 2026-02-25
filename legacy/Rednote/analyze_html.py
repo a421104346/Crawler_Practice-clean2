@@ -10,13 +10,13 @@ try:
     
     soup = BeautifulSoup(content, 'html.parser')
     
-    # 查找第一个 footer
+    # Find the first footer
     footer = soup.find(class_="footer")
     if footer:
         print("Found footer structure:")
         print(footer.prettify())
         
-        # 尝试分析 author 部分
+        # Try to analyze the author section
         author_wrapper = footer.find(class_="author-wrapper")
         if author_wrapper:
             print("\nAuthor wrapper structure:")

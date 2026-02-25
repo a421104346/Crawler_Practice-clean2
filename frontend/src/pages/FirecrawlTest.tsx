@@ -93,7 +93,7 @@ export const FirecrawlTestPage: React.FC = () => {
 
   const handleScrape = async () => {
     if (!url.trim()) {
-      setError('请输入要抓取的 URL')
+      setError('Please enter a URL to scrape')
       return
     }
 
@@ -111,13 +111,13 @@ export const FirecrawlTestPage: React.FC = () => {
       })
       setResult(response)
       if (!response.success) {
-        setError(response.error || 'Firecrawl 返回失败')
+        setError(response.error || 'Firecrawl returned failure')
       }
     } catch (error) {
       const message =
         error instanceof Error && error.message
           ? error.message
-          : '请求失败，请检查 Firecrawl 配置或网络'
+          : 'Request failed, please check Firecrawl config or network'
       setError(message)
     } finally {
       setIsLoading(false)
@@ -140,12 +140,12 @@ export const FirecrawlTestPage: React.FC = () => {
   const handleDownload = async () => {
     if (!result) return
     if (!result.data) {
-      setError('当前结果为空，无法下载')
+      setError('Current result is empty, cannot download')
       return
     }
     const value = result.data[format]
     if (typeof value !== 'string') {
-      setError('当前结果未包含所选下载格式')
+      setError('Current result does not contain the selected download format')
       return
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -162,7 +162,7 @@ export const FirecrawlTestPage: React.FC = () => {
 
     if (format === 'screenshot') {
       if (!value) {
-        setError('当前结果未包含截图数据')
+        setError('Current result does not contain screenshot data')
         return
       }
       if (value.startsWith('data:image') || value.startsWith('http')) {
@@ -176,8 +176,8 @@ export const FirecrawlTestPage: React.FC = () => {
           }
           blob = new Blob([bytes], { type: 'image/png' })
         } catch (decodeError) {
-          console.error('截图 base64 解码失败', decodeError)
-          setError('截图数据格式不正确，无法解码下载')
+          console.error('Screenshot base64 decode failed', decodeError)
+          setError('Screenshot data format incorrect, cannot decode for download')
           return
         }
       }
@@ -234,7 +234,7 @@ export const FirecrawlTestPage: React.FC = () => {
     const name = cookieName.trim()
     const value = cookie.trim()
     if (!name || !value) {
-      setError('请填写 Cookie 名称和内容再保存')
+      setError('Please fill in Cookie name and content before saving')
       return
     }
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -251,11 +251,11 @@ export const FirecrawlTestPage: React.FC = () => {
   const handleUpdateCookie = () => {
     const value = cookie.trim()
     if (!selectedCookieId) {
-      setError('请先选择一个已保存的 Cookie')
+      setError('Please select a saved Cookie first')
       return
     }
     if (!value) {
-      setError('当前 Cookie 为空，无法更新')
+      setError('Current Cookie is empty, cannot update')
       return
     }
     setSavedCookies((prev) =>
@@ -269,7 +269,7 @@ export const FirecrawlTestPage: React.FC = () => {
 
   const handleDeleteCookie = () => {
     if (!selectedCookieId) {
-      setError('请先选择一个已保存的 Cookie')
+      setError('Please select a saved Cookie first')
       return
     }
     setSavedCookies((prev) => prev.filter((item) => item.id !== selectedCookieId))
@@ -279,7 +279,7 @@ export const FirecrawlTestPage: React.FC = () => {
 
   const handleExportCookies = () => {
     if (savedCookies.length === 0) {
-      setError('当前没有可导出的 Cookie')
+      setError('No Cookie available for export')
       return
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -305,7 +305,7 @@ export const FirecrawlTestPage: React.FC = () => {
       try {
         const parsed = JSON.parse(String(reader.result)) as SavedCookie[]
         if (!Array.isArray(parsed)) {
-          throw new Error('Cookie 文件格式不正确')
+          throw new Error('Cookie file format is incorrect')
         }
         const normalized = parsed
           .filter((item) => item?.name && item?.value)
@@ -316,13 +316,13 @@ export const FirecrawlTestPage: React.FC = () => {
             updated_at: item.updated_at || new Date().toISOString()
           }))
         if (normalized.length === 0) {
-          setError('未在文件中找到有效 Cookie')
+          setError('No valid Cookie found in file')
           return
         }
         setSavedCookies((prev) => [...normalized, ...prev])
         setError(null)
       } catch (error) {
-        setError(error instanceof Error ? error.message : '导入失败')
+        setError(error instanceof Error ? error.message : 'Import failed')
       } finally {
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
@@ -343,13 +343,13 @@ export const FirecrawlTestPage: React.FC = () => {
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft size={18} />
-                返回
+                Back
               </button>
-              <h1 className="text-xl font-bold text-gray-900">Firecrawl 测试</h1>
+              <h1 className="text-xl font-bold text-gray-900">Firecrawl Test</h1>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Sparkles size={16} />
-              Weibo 热搜测试页
+              Weibo Hot Search Test Page
             </div>
           </div>
         </div>
@@ -358,18 +358,18 @@ export const FirecrawlTestPage: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">抓取 URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Scrape URL</label>
             <input
               value={url}
               onChange={(event) => setUrl(event.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="https://s.weibo.com/top/summary?cate=realtimehot"
             />
-            <p className="text-xs text-gray-500 mt-2">默认使用微博热搜公开页</p>
+            <p className="text-xs text-gray-500 mt-2">Defaults to Weibo Hot Search public page</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">输出格式</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Output Format</label>
             <div className="flex flex-wrap gap-3">
               {formatOptions.map((option) => (
                 <label key={option.value} className="flex items-center gap-2 text-sm text-gray-700">
@@ -387,31 +387,31 @@ export const FirecrawlTestPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">登录 Cookie（可选）</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Login Cookie (optional)</label>
             <textarea
               value={cookie}
               onChange={(event) => setCookie(event.target.value)}
               className="w-full h-28 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
-              placeholder="从浏览器 Network 请求里复制 Cookie 头（完整粘贴）"
+              placeholder="Copy Cookie header from browser Network tab (paste in full)"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Cookie 名称</label>
+                <label className="block text-xs text-gray-500 mb-1">Cookie Name</label>
                 <input
                   value={cookieName}
                   onChange={(event) => setCookieName(event.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                  placeholder="例如：我的微博账号"
+                  placeholder="e.g.: my-weibo-account"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">已保存 Cookie</label>
+                <label className="block text-xs text-gray-500 mb-1">Saved Cookies</label>
                 <select
                   value={selectedCookieId}
                   onChange={(event) => handleSelectCookie(event.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                 >
-                  <option value="">请选择</option>
+                  <option value="">Select</option>
                   {savedCookies.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
@@ -424,31 +424,31 @@ export const FirecrawlTestPage: React.FC = () => {
                   onClick={handleSaveCookie}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  保存为新
+                  Save as New
                 </button>
                 <button
                   onClick={handleUpdateCookie}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  更新选中
+                  Update Selected
                 </button>
                 <button
                   onClick={handleDeleteCookie}
                   className="px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50"
                 >
-                  删除
+                  Delete
                 </button>
                 <button
                   onClick={handleExportCookies}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  导出
+                  Export
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  导入
+                  Import
                 </button>
                 <input
                   ref={fileInputRef}
@@ -460,8 +460,8 @@ export const FirecrawlTestPage: React.FC = () => {
               </div>
             </div>
             <div className="text-xs text-gray-500 mt-2 space-y-1">
-              <div>获取方式：登录目标站点 → F12 → Network → 选中页面请求 → Request Headers → Cookie</div>
-              <div>Cookie 仅保存到本地浏览器（localStorage），不会上传服务器。</div>
+              <div>How to get: Login to target site → F12 → Network → Select page request → Request Headers → Cookie</div>
+              <div>Cookies are saved to local browser (localStorage) only, not uploaded to server.</div>
             </div>
           </div>
 
@@ -473,11 +473,11 @@ export const FirecrawlTestPage: React.FC = () => {
                 onChange={(event) => setOnlyMainContent(event.target.checked)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              仅主内容
+              Main Content Only
             </label>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">等待加载 (ms)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Wait for Load (ms)</label>
               <input
                 value={waitForMs}
                 onChange={(event) => setWaitForMs(event.target.value)}
@@ -486,7 +486,7 @@ export const FirecrawlTestPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">超时 (ms)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Timeout (ms)</label>
               <input
                 value={timeoutMs}
                 onChange={(event) => setTimeoutMs(event.target.value)}
@@ -501,27 +501,27 @@ export const FirecrawlTestPage: React.FC = () => {
               disabled={isLoading}
               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
             >
-              {isLoading ? '抓取中...' : '开始抓取'}
+              {isLoading ? 'Scraping...' : 'Start Scraping'}
             </button>
             <button
               onClick={handleReset}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
             >
-              重置
+              Reset
             </button>
             <button
               onClick={handleDownload}
               disabled={!result}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-60"
             >
-              下载结果
+              Download Result
             </button>
             <button
               onClick={handleDownloadJson}
               disabled={!result}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-60"
             >
-              下载 JSON
+              Download JSON
             </button>
           </div>
 
@@ -541,7 +541,7 @@ export const FirecrawlTestPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">内容预览</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Content Preview</label>
                 {format === 'screenshot' ? (
                   screenshotPreview ? (
                     <img
@@ -550,7 +550,7 @@ export const FirecrawlTestPage: React.FC = () => {
                       className="max-h-64 border border-gray-300 rounded-lg"
                     />
                   ) : (
-                    <div className="text-sm text-gray-500">当前结果未包含截图数据。</div>
+                    <div className="text-sm text-gray-500">Current result does not contain screenshot data.</div>
                   )
                 ) : (
                   <textarea
@@ -562,7 +562,7 @@ export const FirecrawlTestPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">完整响应</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Response</label>
                 <textarea
                   readOnly
                   value={JSON.stringify(result, null, 2)}

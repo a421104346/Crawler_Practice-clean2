@@ -1,5 +1,5 @@
 """
-Firecrawl API 测试
+Firecrawl API tests
 """
 import pytest
 
@@ -7,7 +7,7 @@ from backend.schemas.firecrawl import FirecrawlScrapeResponse
 
 
 def test_firecrawl_requires_auth(client):
-    """未认证时应返回 403"""
+    """Should return 403 when unauthenticated"""
     response = client.post(
         "/api/firecrawl/scrape",
         json={
@@ -20,7 +20,7 @@ def test_firecrawl_requires_auth(client):
 
 
 def test_firecrawl_scrape_success(client, auth_headers, monkeypatch):
-    """认证后可正常调用 Firecrawl scrape"""
+    """Should work normally with authentication"""
     async def fake_scrape(_request):
         return FirecrawlScrapeResponse(
             success=True,

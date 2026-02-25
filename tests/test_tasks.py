@@ -1,5 +1,5 @@
 """
-任务管理测试
+Task management tests
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -9,7 +9,7 @@ client = TestClient(app)
 
 
 def test_get_tasks_list():
-    """测试获取任务列表"""
+    """Test get task list"""
     response = client.get("/api/tasks")
     assert response.status_code == 200
     
@@ -21,7 +21,7 @@ def test_get_tasks_list():
 
 
 def test_get_tasks_with_pagination():
-    """测试任务列表分页"""
+    """Test task list pagination"""
     response = client.get("/api/tasks?page=1&page_size=10")
     assert response.status_code == 200
     
@@ -31,25 +31,25 @@ def test_get_tasks_with_pagination():
 
 
 def test_get_tasks_with_filter():
-    """测试任务列表过滤"""
-    # 按状态过滤
+    """Test task list filtering"""
+    # Filter by status
     response = client.get("/api/tasks?status=completed")
     assert response.status_code == 200
     
-    # 按爬虫类型过滤
+    # Filter by crawler type
     response = client.get("/api/tasks?crawler_type=yahoo")
     assert response.status_code == 200
 
 
 def test_get_nonexistent_task():
-    """测试获取不存在的任务"""
+    """Test get nonexistent task"""
     response = client.get("/api/tasks/nonexistent-task-id")
     assert response.status_code == 404
 
 
 def test_create_and_get_task():
-    """测试创建任务并获取"""
-    # 创建任务
+    """Test create and get task"""
+    # Create task
     create_response = client.post(
         "/api/crawlers/yahoo/run",
         json={"symbol": "MSFT"}
@@ -58,7 +58,7 @@ def test_create_and_get_task():
     assert create_response.status_code == 200
     task_id = create_response.json()["task_id"]
     
-    # 获取任务
+    # Get task
     get_response = client.get(f"/api/tasks/{task_id}")
     assert get_response.status_code == 200
     
@@ -69,33 +69,33 @@ def test_create_and_get_task():
 
 
 def test_delete_task():
-    """测试删除任务"""
-    # 创建任务
+    """Test delete task"""
+    # Create task
     create_response = client.post(
         "/api/crawlers/movies/run",
         json={"max_pages": 1}
     )
     task_id = create_response.json()["task_id"]
     
-    # 删除任务
+    # Delete task
     delete_response = client.delete(f"/api/tasks/{task_id}")
     assert delete_response.status_code == 200
     
-    # 验证任务已删除
+    # Verify task is deleted
     get_response = client.get(f"/api/tasks/{task_id}")
     assert get_response.status_code == 404
 
 
 def test_update_task():
-    """测试更新任务状态"""
-    # 创建任务
+    """Test update task status"""
+    # Create task
     create_response = client.post(
         "/api/crawlers/yahoo/run",
         json={"symbol": "GOOGL"}
     )
     task_id = create_response.json()["task_id"]
     
-    # 更新任务（例如取消任务）
+    # Update task (e.g. cancel task)
     update_response = client.patch(
         f"/api/tasks/{task_id}",
         json={"status": "cancelled"}

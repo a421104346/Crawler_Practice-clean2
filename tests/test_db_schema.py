@@ -2,7 +2,7 @@ import asyncio
 import sys
 import os
 
-# 添加路径
+# Add path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from backend.database import init_db, close_db, AsyncSessionLocal
@@ -12,71 +12,71 @@ from backend.schemas.auth import UserRegister
 from backend.schemas.task import TaskCreate
 
 async def test_schema():
-    print("🚀 开始数据库 Schema 测试...")
+    print("🚀 Starting database schema test...")
     
-    # 1. 初始化数据库
+    # 1. Initialize database
     try:
         await init_db()
-        print("✅ 数据库初始化成功")
+        print("✅ Database initialization successful")
     except Exception as e:
-        print(f"❌ 数据库初始化失败: {e}")
+        print(f"❌ Database initialization failed: {e}")
         return
 
     async with AsyncSessionLocal() as db:
-        # 2. 创建用户
-        print("\n👤 测试用户创建...")
+        # 2. Create user
+        print("\n👤 Testing user creation...")
         try:
             user_in = UserRegister(
                 username="schema_test_user",
                 email="test@schema.com",
                 password="password123"
             )
-            # 检查是否存在
+            # Check if exists
             existing = await user_crud.get_by_username(db, user_in.username)
             if existing:
-                print(f"   用户 {user_in.username} 已存在，跳过创建")
+                print(f"   User {user_in.username} already exists, skipping creation")
                 user = existing
             else:
                 user = await user_crud.create(db, user_in)
-                print(f"✅ 用户创建成功: {user.id} ({user.username})")
+                print(f"✅ User created successfully: {user.id} ({user.username})")
         except Exception as e:
-            print(f"❌ 用户创建失败: {e}")
+            print(f"❌ User creation failed: {e}")
             return
 
-        # 3. 创建任务
-        print("\n📋 测试任务创建 (带外键关联)...")
+        # 3. Create task
+        print("\n📋 Testing task creation (with foreign key association)...")
         try:
             task_in = TaskCreate(
                 crawler_type="yahoo",
                 params={"symbol": "TEST"}
             )
             task = await task_crud.create(db, task_in, user_id=user.id)
-            print(f"✅ 任务创建成功: {task.id}")
-            print(f"   关联用户ID: {task.user_id}")
+            print(f"✅ Task created successfully: {task.id}")
+            print(f"   Associated user ID: {task.user_id}")
         except Exception as e:
-            print(f"❌ 任务创建失败: {e}")
+            print(f"❌ Task creation failed: {e}")
             return
 
-        # 4. 数据隔离测试
-        print("\n🔒 测试数据隔离...")
+        # 4. Data isolation test
+        print("\n🔒 Testing data isolation...")
         try:
-            # 查该用户的任务
+            # Query tasks for this user
             tasks = await task_crud.get_multi(db, user_id=user.id)
-            print(f"✅ 查询用户任务成功: 找到 {len(tasks)} 个任务")
+            print(f"✅ Query user tasks successful: found {len(tasks)} tasks")
             
-            # 查不存在用户的任务
+            # Query tasks for nonexistent user
             fake_id = "fake-uuid-000"
             empty_tasks = await task_crud.get_multi(db, user_id=fake_id)
-            print(f"✅ 查询其他用户任务: 找到 {len(empty_tasks)} 个任务 (预期为0)")
+            print(f"✅ Query other user tasks: found {len(empty_tasks)} tasks (expected 0)")
             
             assert len(tasks) > 0
             assert len(empty_tasks) == 0
-            print("✅ 数据隔离验证通过")
+            print("✅ Data isolation verification passed")
         except Exception as e:
-            print(f"❌ 数据隔离测试失败: {e}")
+            print(f"❌ Data isolation test failed: {e}")
 
     await close_db()
-    print("\n✨ 所有测试完成！Schema 正常工作。")
+    print("\n✨ All tests completed! Schema is working correctly.")
 
 if __name__ == "__main__":
     if sys.platform == "win32":

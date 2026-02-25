@@ -1,6 +1,6 @@
 /**
- * 主应用组件
- * 路由配置和全局布局
+ * Main application component
+ * Route configuration and global layout
  */
 import React, { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
@@ -13,7 +13,7 @@ import { FirecrawlTestPage } from '@/pages/FirecrawlTest'
 import { FirecrawlHotRankPage } from '@/pages/FirecrawlHotRank'
 import AdminDashboard from '@/pages/AdminDashboard'
 
-// 受保护的路由组件
+// Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, user, isLoading } = useAuthStore()
   
@@ -25,7 +25,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" replace />
   }
   
-  // 如果是管理员，禁止访问普通用户页面，重定向到 Admin Dashboard
+  // If admin, prevent access to regular user pages, redirect to Admin Dashboard
   if (user?.is_admin) {
     return <Navigate to="/admin" replace />
   }
@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>
 }
 
-// 根路径重定向组件
+// Root path redirect component
 const HomeRedirect: React.FC = () => {
   const { isAuthenticated, user, isLoading } = useAuthStore()
   
@@ -52,7 +52,7 @@ const HomeRedirect: React.FC = () => {
   return <Navigate to="/dashboard" replace />
 }
 
-// 管理员路由组件
+// Admin route component
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore()
   
@@ -70,7 +70,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 export const App: React.FC = () => {
   const { fetchUser, isAuthenticated } = useAuthStore()
 
-  // 应用启动时获取用户信息
+  // Fetch user info on app startup
   useEffect(() => {
     if (isAuthenticated) {
       fetchUser()
@@ -80,11 +80,11 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 公开路由 */}
+        {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* 受保护的路由 */}
+        {/* Protected routes */}
         <Route
           path="/admin"
           element={
@@ -126,10 +126,10 @@ export const App: React.FC = () => {
           }
         />
 
-        {/* 默认路由 */}
+        {/* Default route */}
         <Route path="/" element={<HomeRedirect />} />
         
-        {/* 404 路由 - 根据角色重定向 */}
+        {/* 404 route - redirect based on role */}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </BrowserRouter>

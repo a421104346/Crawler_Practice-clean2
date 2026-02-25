@@ -14,34 +14,34 @@ try:
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    # 查找 id="cs2_mouse"
+    # Find id="cs2_mouse"
     mouse_section = soup.find(id="cs2_mouse")
     if mouse_section:
-        print("=== 找到 mouse_section ===")
-        # 根据截图，表格直接在 mouse_section 下面，或者在 div.promo 下面
-        # 我们先查找所有 table
+        print("=== Found mouse_section ===")
+        # Based on screenshots, the table is directly under mouse_section or under div.promo
+        # First find all tables
         tables = mouse_section.find_all("table")
-        print(f"找到 {len(tables)} 个表格")
+        print(f"Found {len(tables)} tables")
         
         for idx, table in enumerate(tables):
-            print(f"\n--- 表格 {idx+1} ---")
+            print(f"\n--- Table {idx+1} ---")
             print(f"Class: {table.get('class')}")
             
-            # 尝试提取每一行
+            # Try to extract each row
             rows = table.find_all("tr")
             for row in rows:
-                # 根据截图，tr 上有 data-field 属性，例如 data-field="dpi"
+                # Based on screenshots, tr has data-field attribute, e.g. data-field="dpi"
                 data_field = row.get("data-field")
                 
-                # 单元格内容
+                # Cell content
                 cols = row.find_all("td")
-                # 截图里好像只有两个 td，一个是 Label 没显示出来？或者它是 th?
-                # 让我们打印一下 row 的完整内容看看结构
+                # Screenshots show only two td; one may be a Label or th
+                # Print row content to see the structure
                 print(f"Row data-field='{data_field}': {row.get_text(strip=True)}")
-                print(row.prettify()[:200]) # 打印一些 HTML 看看结构
+                print(row.prettify()[:200]) # Print some HTML to see the structure
 
     else:
-        print("未找到 id='cs2_mouse'")
+        print("id='cs2_mouse' not found")
 
 except Exception as e:
     print(e)
