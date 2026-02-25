@@ -208,13 +208,13 @@ def _extract_weibo_posts(tree: lxml_html.HtmlElement) -> Tuple[List[WeiboHotRank
 
 def _detect_weibo_blocked(html_content: str) -> str:
     signals = [
-        "Access frequency too high",
-        "Security verification",
-        "Captcha",
-        "Please enable JavaScript",
-        "Please enable JavaScript",
-        "Due to high access frequency",
-        "Please try again later"
+        "访问频次过高",
+        "安全验证",
+        "验证码",
+        "请开启 JavaScript",
+        "请开启JavaScript",
+        "由于您的访问频次过高",
+        "请稍后再试"
     ]
     for signal in signals:
         if signal in html_content:
