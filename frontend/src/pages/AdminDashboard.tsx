@@ -39,7 +39,8 @@ const AdminDashboard: React.FC = () => {
       setTotalPages(data.total_pages);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to fetch tasks');
+      const detail = err.response?.data?.detail;
+      setError(typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : 'Failed to fetch tasks');
     } finally {
       setLoading(false);
     }

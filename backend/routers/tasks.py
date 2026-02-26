@@ -156,7 +156,8 @@ async def list_tasks(
             total=total,
             tasks=task_responses,
             page=page,
-            page_size=page_size
+            page_size=page_size,
+            total_pages=max(1, (total + page_size - 1) // page_size)
         )
         
     except Exception as e:
