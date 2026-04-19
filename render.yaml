@@ -37,12 +37,10 @@ services:
 
   - type: redis
     name: crawler-redis
-    plan: starter
     ipAllowList: []
     maxmemoryPolicy: allkeys-lru
 
 databases:
   - name: crawler-postgres
-    plan: starter
     databaseName: crawler_db
     user: crawler_user
