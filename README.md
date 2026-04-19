@@ -105,6 +105,7 @@ Frontend keys:
 
 - `VITE_API_BASE_URL` (must include `/api`, e.g. `https://api.example.com/api`)
 - `VITE_WS_BASE_URL` (e.g. `wss://api.example.com`)
+- `VITE_DEMO_MODE` (`true` uses mock APIs for frontend-only showcase)
 
 ## Admin Bootstrap
 

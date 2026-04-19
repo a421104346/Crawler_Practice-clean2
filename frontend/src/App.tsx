@@ -12,6 +12,7 @@ import { HistoryPage } from '@/pages/History'
 import { FirecrawlTestPage } from '@/pages/FirecrawlTest'
 import { FirecrawlHotRankPage } from '@/pages/FirecrawlHotRank'
 import AdminDashboard from '@/pages/AdminDashboard'
+import { isDemoModeEnabled } from '@/services/api'
 
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -79,6 +80,11 @@ export const App: React.FC = () => {
 
   return (
     <BrowserRouter>
+      {isDemoModeEnabled && (
+        <div className="fixed right-4 top-4 z-50 rounded-full border border-amber-300 bg-amber-100 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-amber-800 shadow-sm">
+          Demo Mode
+        </div>
+      )}
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
