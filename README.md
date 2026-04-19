@@ -4,6 +4,7 @@ A full-stack crawler management system built with **FastAPI + React + TypeScript
 It provides crawler orchestration, task tracking, JWT authentication, and real-time progress updates via WebSocket.
 
 For a recruiter-focused summary, see `README.seek.md`.
+Portfolio asset checklist: `docs/portfolio-assets-checklist.md`.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-green.svg)](https://fastapi.tiangolo.com/)
@@ -89,7 +90,7 @@ Frontend default URL: `http://localhost:5173`
 ## Environment Variables
 
 1. Create `.env` at the project root.
-2. Use `docs/env.example.txt` as the template.
+2. Use `.env.example` (or `docs/env.example.txt`) as the template.
 
 Common keys:
 
@@ -99,6 +100,11 @@ Common keys:
 - `USE_CELERY`
 - `FIRECRAWL_API_KEY`
 - `ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+
+Frontend keys:
+
+- `VITE_API_BASE_URL` (must include `/api`, e.g. `https://api.example.com/api`)
+- `VITE_WS_BASE_URL` (e.g. `wss://api.example.com`)
 
 ## Admin Bootstrap
 
@@ -169,6 +175,12 @@ Includes PostgreSQL, Redis, backend, Celery worker/beat, and Flower.
 ```bash
 docker compose -f docker-compose.dev.yml up --build
 ```
+
+## Cloud Deployment (Portfolio-friendly)
+
+- **Backend**: Render Blueprint using `render.yaml`
+- **Frontend**: Vercel using `frontend/vercel.json`
+- Full step-by-step guide: `docs/deploy-vercel-render.md`
 
 ## Testing
 

@@ -14,6 +14,19 @@ interface UseWebSocketOptions {
   reconnectInterval?: number
 }
 
+const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, '')
+
+const resolveWebSocketBaseUrl = (): string => {
+  const configuredBaseUrl = import.meta.env.VITE_WS_BASE_URL?.trim()
+  if (configuredBaseUrl) {
+    return trimTrailingSlash(configuredBaseUrl)
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const host = import.meta.env.DEV ? 'localhost:8000' : window.location.host
+  return `${protocol}//${host}`
+}
+
 export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions = {}) => {
   const {
     onMessage,
@@ -28,7 +41,7 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null)
   const ws = useRef<WebSocket | null>(null)
   const reconnectCount = useRef(0)
-  const reconnectTimeout = useRef<NodeJS.Timeout>()
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>()
   const manualClose = useRef(false)
 
   // Use refs to store latest callbacks to avoid unnecessary reconnections
@@ -56,16 +69,8 @@ export const useWebSocket = (taskId: string | null, options: UseWebSocketOptions
 
     try {
       manualClose.current = false
-      // Build WebSocket URL
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      
-      // In dev, connect directly to backend port 8000 to bypass Vite proxy instability
-      let host = window.location.host
-      if (host.includes('localhost:3000') || host.includes('localhost:5173')) {
-        host = host.split(':')[0] + ':8000'
-      }
-
-      const wsUrl = `${protocol}//${host}/ws/tasks/${taskId}`
+      const wsBaseUrl = resolveWebSocketBaseUrl()
+      const wsUrl = `${wsBaseUrl}/ws/tasks/${taskId}`
 
       ws.current = new WebSocket(wsUrl)
 

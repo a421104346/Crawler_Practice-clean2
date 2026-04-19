@@ -6,7 +6,23 @@ import {
 } from '../types';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
+
+const resolveApiBaseUrl = (): string => {
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (configuredBaseUrl) {
+    return trimTrailingSlash(configuredBaseUrl);
+  }
+
+  // Fallback keeps local/dev and reverse-proxy deployments working out of the box.
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/api`;
+  }
+
+  return 'http://localhost:8000/api';
+};
+
+const API_URL = resolveApiBaseUrl();
 
 // Create axios instance with interceptor for auth
 const api = axios.create({

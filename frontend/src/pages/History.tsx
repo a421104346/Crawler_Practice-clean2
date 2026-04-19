@@ -8,7 +8,7 @@ import { ArrowLeft, Filter, TrendingUp, TrendingDown, Activity } from 'lucide-re
 import { taskApi, monitoringApi } from '@/services/api'
 import { TaskCard } from '@/components/TaskCard'
 import type { Task, TaskStatus, StatsResponse } from '@/types'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 export const HistoryPage: React.FC = () => {
   const navigate = useNavigate()

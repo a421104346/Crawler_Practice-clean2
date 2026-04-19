@@ -91,6 +91,10 @@ export const FirecrawlTestPage: React.FC = () => {
     return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null
   }, [result])
 
+  const metadataTitle = metadata?.title == null ? '' : String(metadata.title)
+  const metadataSourceUrl = metadata?.sourceURL == null ? '' : String(metadata.sourceURL)
+  const metadataStatusCode = metadata?.statusCode == null ? '' : String(metadata.statusCode)
+
   const handleScrape = async () => {
     if (!url.trim()) {
       setError('Please enter a URL to scrape')
@@ -535,9 +539,9 @@ export const FirecrawlTestPage: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
                 <div>success: {String(result.success)}</div>
-                {metadata?.title && <div>title: {String(metadata.title)}</div>}
-                {metadata?.sourceURL && <div>source: {String(metadata.sourceURL)}</div>}
-                {metadata?.statusCode && <div>statusCode: {String(metadata.statusCode)}</div>}
+                {metadataTitle && <div>title: {metadataTitle}</div>}
+                {metadataSourceUrl && <div>source: {metadataSourceUrl}</div>}
+                {metadataStatusCode && <div>statusCode: {metadataStatusCode}</div>}
               </div>
 
               <div>
